@@ -2616,10 +2616,20 @@ export default function SKFQualityApp() {
         setIsGeneratingPdf(true);
         setDownloadingRecord(rec);
         await loadHtml2Pdf();
-        setTimeout(async () => {
+        setTimeout(() => {
+          requestAnimationFrame(async () => {
           try {
             const element = pdfDownloadContainerRef.current;
-            const worker = window.html2pdf().set({ jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element);
+            if (!element || !window.html2pdf) {
+              throw new Error('PDF generator element not ready');
+            }
+            const printOpt = {
+              margin: [5, 5, 5, 5],
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            const worker = window.html2pdf().set(printOpt).from(element);
             const basePdfBlob = await worker.outputPdf('blob');
             const mergedPdfBlob = await mergePdfWithAttachment(basePdfBlob, attachment);
             const blobUrl = URL.createObjectURL(mergedPdfBlob);
@@ -2635,7 +2645,8 @@ export default function SKFQualityApp() {
             setIsGeneratingPdf(false);
             setDownloadingRecord(null);
           }
-        }, 250);
+          });
+        }, 600);
         return;
       } catch (e) {
         console.error(e);
@@ -2664,7 +2675,8 @@ export default function SKFQualityApp() {
       setDownloadingRecord(rec);
       await loadHtml2Pdf();
 
-      setTimeout(async () => {
+      setTimeout(() => {
+        requestAnimationFrame(async () => {
         try {
           const element = pdfDownloadContainerRef.current;
           if (!element || !window.html2pdf) {
@@ -2729,7 +2741,8 @@ export default function SKFQualityApp() {
           setIsGeneratingPdf(false);
           setDownloadingRecord(null);
         }
-      }, 250);
+        });
+      }, 600);
     } catch (err) {
       console.error(err);
       setIsGeneratingPdf(false);
