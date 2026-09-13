@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "node -e \"const fs = require('fs'); try { fs.cpSync('dist', '../dist', { recursive: true }); } catch (e) {}\"",
     "preview": "vite preview"
   },
   "dependencies": {

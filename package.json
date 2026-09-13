@@ -1,0 +1,9 @@
+{
+  "name": "skf-internship-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build && node -e \"const fs = require('fs'); try { fs.cpSync('frontend/dist', 'dist', { recursive: true }); } catch (e) {}\"",
+    "dev": "npm --prefix frontend run dev"
+  }
+}
