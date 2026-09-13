@@ -2311,60 +2311,15 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
         <ReasonAndAuthorizationSection formData={formData} setFormData={setFormData} />
       </div>
 
-      {/* Attachment Section */}
-      <div style={{ maxWidth: '750px', margin: '15px auto 0 auto', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px dashed #005a9c', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <div>
-          <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#002b49', display: 'block' }}>
-            📎 Attach Supplementary PDF Report:
-          </span>
-          <span style={{ fontSize: '11px', color: '#64748b' }}>
-            Optional. Uploaded PDF will be appended directly to this report sheet on Preview, Print, and PDF Download.
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={onAttachmentChange}
-            style={{ fontSize: '12px' }}
-          />
-          {attachedPdfName && (
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#16a34a', backgroundColor: '#dcfce7', padding: '3px 8px', borderRadius: '4px' }}>
-              ✓ {attachedPdfName}
-            </span>
-          )}
-        </div>
-      </div>
-
       <button onClick={() => { setActiveVisualCell(null); onSubmit(); }} style={{ width: '100%', maxWidth: '750px', display: 'block', margin: '15px auto 0 auto', padding: '10px', backgroundColor: '#005a9c', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px' }}>
-        Submit Inspection Report
+        {attachedPdfName ? `Submit Inspection Report (📎 Includes: ${attachedPdfName})` : 'Submit Inspection Report'}
       </button>
     </div>
   );
 }
 
-function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSaved, showAppAlert }) {
+function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSaved, showAppAlert, attachedPdf, onClearAttachedPdf }) {
   const printRef = useRef();
-  const [attachedPdfFile, setAttachedPdfFile] = useState(null);
-  const [attachedPdfName, setAttachedPdfName] = useState('');
-
-  const handleAttachmentChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.type !== 'application/pdf') {
-      if (showAppAlert) {
-        showAppAlert('Please select a valid PDF file.', 'error');
-      } else {
-        alert('Please select a valid PDF file.');
-      }
-      return;
-    }
-    setAttachedPdfFile(file);
-    setAttachedPdfName(file.name);
-    if (showAppAlert) {
-      showAppAlert(`PDF attached: ${file.name}. It will be bundled with this report upon submission.`, 'success');
-    }
-  };
 
   const [formData, setFormData] = useState({
     formatNo: (selectedFormKey && FORM_METADATA[selectedFormKey]) ? FORM_METADATA[selectedFormKey].formatNo : '',
@@ -2430,8 +2385,25 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
   }, [filters]);
 
   const handleSubmit = async () => {
+    const newRecId = `REC-${Math.floor(100 + Math.random() * 900)}`;
+
+    let cloudAttachmentUrl = null;
+    if (isSupabaseConfigured && attachedPdf?.file) {
+      try {
+        cloudAttachmentUrl = await uploadPdfToStorage(attachedPdf.file, `${newRecId}_attached.pdf`);
+      } catch (err) {
+        console.warn('Could not upload attached PDF to storage:', err);
+      }
+    }
+
+    const recFormData = {
+      ...formData,
+      attachmentUrl: cloudAttachmentUrl || attachedPdf?.url || null,
+      attachmentName: attachedPdf?.name || null
+    };
+
     const newRec = {
-      id: `REC-${Math.floor(100 + Math.random() * 900)}`,
+      id: newRecId,
       date: formData.date,
       section: filters.section || '',
       channel: formData.channelNo,
@@ -2443,8 +2415,11 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       shift: formData.shift,
       inspector: formData.inspectorName,
       status: formData.machineReleased,
-      formData: { ...formData },
+      formData: recFormData,
       tableData: JSON.parse(JSON.stringify(tableData)),
+      attachmentFile: attachedPdf?.file || null,
+      attachmentUrl: cloudAttachmentUrl || attachedPdf?.url || null,
+      attachmentName: attachedPdf?.name || null,
       pdfUrl: null
     };
 
@@ -2456,7 +2431,12 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
         if (onRecordSaved) {
           await onRecordSaved();
         }
-        alert('Inspection Form Saved & Synced to Cloud Database! Check "View Reports" tab.');
+        alert(
+          attachedPdf
+            ? `Inspection Form Saved & Synced with attached PDF (${attachedPdf.name})! Check "View Reports" tab to preview or download the concatenated PDF.`
+            : 'Inspection Form Saved & Synced to Cloud Database! Check "View Reports" tab.'
+        );
+        if (onClearAttachedPdf) onClearAttachedPdf();
         return;
       } catch (err) {
         console.error('Supabase sync error:', err);
@@ -2466,7 +2446,12 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
     if (onRecordSaved) {
       await onRecordSaved();
     }
-    alert('Inspection Form Saved Successfully! Go to "View Reports" to Preview, Print, or Download PDF.');
+    alert(
+      attachedPdf
+        ? `Inspection Form Saved with attached PDF (${attachedPdf.name})! Check "View Reports" tab to preview or download the concatenated PDF.`
+        : 'Inspection Form Saved Successfully! Go to "View Reports" to Preview, Print, or Download PDF.'
+    );
+    if (onClearAttachedPdf) onClearAttachedPdf();
   };
 
   return (
@@ -2477,6 +2462,7 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       tableData={tableData}
       setTableData={setTableData}
       onSubmit={handleSubmit}
+      attachedPdfName={attachedPdf?.name || ''}
     />
   );
 }
@@ -2513,6 +2499,7 @@ export default function SKFQualityApp() {
   const [downloadingRecord, setDownloadingRecord] = useState(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+  const [attachedPdf, setAttachedPdf] = useState(null);
   const pdfDownloadContainerRef = useRef(null);
   const previewContentRef = useRef(null);
 
@@ -2537,7 +2524,9 @@ export default function SKFQualityApp() {
           status: r.status || 'YES',
           formData: r.form_data || null,
           tableData: r.table_data || null,
-          pdfUrl: r.pdf_url || null
+          pdfUrl: r.pdf_url || null,
+          attachmentUrl: r.form_data?.attachmentUrl || null,
+          attachmentName: r.form_data?.attachmentName || null
         }));
         // Merge cloud records with local initial database, prioritizing cloud
         setRecords((prev) => {
@@ -2575,6 +2564,7 @@ export default function SKFQualityApp() {
       machine: '',
       shift: ''
     });
+    setAttachedPdf(null);
   };
 
   const handleViewReportsClick = () => {
@@ -2593,62 +2583,65 @@ export default function SKFQualityApp() {
     setAppliedFilters({ ...filterInputs });
   };
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      alert('Please upload a PDF file.');
+      alert('Please upload a valid PDF file.');
       return;
     }
 
     const localPdfUrl = URL.createObjectURL(file);
-    const recId = `REC-${Math.floor(100 + Math.random() * 900)}`;
-
-    let cloudPdfUrl = null;
-    if (isSupabaseConfigured) {
-      setIsCloudSyncing(true);
-      cloudPdfUrl = await uploadPdfToStorage(file, `${recId}_manual.pdf`);
-      setIsCloudSyncing(false);
-    }
-
-    const newRecord = {
-      id: recId,
-      date: filterInputs.date || new Date().toISOString().split('T')[0],
-      section: filterInputs.section || '',
-      channel: filterInputs.channel || '',
-      ringSection: filterInputs.ringSection || '',
-      machine: filterInputs.machine || '',
-      formatNo: 'SKF/QA/UPLOADED',
-      operation: 'MANUAL UPLOAD',
-      type: '',
-      shift: filterInputs.shift || '',
-      inspector: '',
-      status: 'YES',
-      formData: null,
-      tableData: null,
-      pdfUrl: cloudPdfUrl || localPdfUrl
-    };
-
-    setRecords((prev) => [newRecord, ...prev]);
-
-    if (isSupabaseConfigured) {
-      await saveInspectionRecord(newRecord);
-      alert('PDF uploaded and saved to Supabase Cloud Storage & Database! Check "View Reports" tab.');
-    } else {
-      alert('PDF uploaded successfully! Check "View Reports" tab.');
-    }
+    setAttachedPdf({
+      file,
+      name: file.name,
+      url: localPdfUrl
+    });
   };
 
   const handlePreviewRecord = (rec) => {
     setPreviewRecord(rec);
   };
 
-  const handlePrintRecord = (rec) => {
+  const handlePrintRecord = async (rec) => {
     if (rec.pdfUrl && !rec.formData) {
       window.open(rec.pdfUrl, '_blank');
       return;
     }
+
+    const attachment = rec.attachmentFile || rec.attachmentUrl || rec.formData?.attachmentUrl || rec.attachedPdf;
+    if (attachment) {
+      try {
+        setIsGeneratingPdf(true);
+        setDownloadingRecord(rec);
+        await loadHtml2Pdf();
+        setTimeout(async () => {
+          try {
+            const element = pdfDownloadContainerRef.current;
+            const worker = window.html2pdf().set({ jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element);
+            const basePdfBlob = await worker.outputPdf('blob');
+            const mergedPdfBlob = await mergePdfWithAttachment(basePdfBlob, attachment);
+            const blobUrl = URL.createObjectURL(mergedPdfBlob);
+            const printWin = window.open(blobUrl, '_blank');
+            if (printWin) {
+              printWin.focus();
+            }
+          } catch (err) {
+            console.error('Print merge error:', err);
+            setPrintRecord(rec);
+            setTimeout(() => window.print(), 150);
+          } finally {
+            setIsGeneratingPdf(false);
+            setDownloadingRecord(null);
+          }
+        }, 250);
+        return;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     setPrintRecord(rec);
     setTimeout(() => {
       window.print();
@@ -2692,26 +2685,43 @@ export default function SKFQualityApp() {
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
           };
 
-          // If Supabase is configured, also generate blob and save to Supabase Storage
+          const worker = window.html2pdf().set(opt).from(element);
+          const basePdfBlob = await worker.outputPdf('blob');
+
+          // Concatenate uploaded PDF attachment if present
+          const attachment = rec.attachmentFile || rec.attachmentUrl || rec.formData?.attachmentUrl || rec.attachedPdf;
+          let finalPdfBlob = basePdfBlob;
+          if (attachment) {
+            try {
+              finalPdfBlob = await mergePdfWithAttachment(basePdfBlob, attachment);
+            } catch (mergeErr) {
+              console.warn('Could not merge supplementary PDF attachment:', mergeErr);
+            }
+          }
+
+          // If Supabase is configured, also save final concatenated blob to Supabase Storage
           if (isSupabaseConfigured && !rec.pdfUrl) {
             try {
-              const worker = window.html2pdf().set(opt).from(element);
-              const pdfBlob = await worker.outputPdf('blob');
-              const publicUrl = await uploadPdfToStorage(pdfBlob, `${rec.id}.pdf`);
+              const publicUrl = await uploadPdfToStorage(finalPdfBlob, `${rec.id}.pdf`);
               if (publicUrl) {
                 const updatedRec = { ...rec, pdfUrl: publicUrl };
                 await saveInspectionRecord(updatedRec);
                 setRecords((prev) => prev.map((item) => item.id === rec.id ? updatedRec : item));
               }
-              // Save locally for the user
-              await window.html2pdf().set(opt).from(element).save();
             } catch (cloudErr) {
               console.warn('Could not upload PDF to Supabase Storage, downloading locally:', cloudErr);
-              await window.html2pdf().set(opt).from(element).save();
             }
-          } else {
-            await window.html2pdf().set(opt).from(element).save();
           }
+
+          // Trigger download of the concatenated PDF
+          const downloadUrl = URL.createObjectURL(finalPdfBlob);
+          const downloadLink = document.createElement('a');
+          downloadLink.href = downloadUrl;
+          downloadLink.download = opt.filename;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          setTimeout(() => URL.revokeObjectURL(downloadUrl), 10000);
         } catch (err) {
           console.error('PDF download error:', err);
           alert('Could not generate direct PDF file. Please use Preview -> Print -> "Save as PDF".');
@@ -2850,8 +2860,24 @@ export default function SKFQualityApp() {
             </select>
           </div>
           <div style={{ gridColumn: 'span 2' }}>
-            <label style={{ ...labelStyle, color: '#004080' }}>Upload PDF Report:</label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <label style={{ ...labelStyle, color: '#004080', margin: 0 }}>Upload PDF Report (Attachment):</label>
+              {attachedPdf && (
+                <button
+                  type="button"
+                  onClick={() => setAttachedPdf(null)}
+                  style={{ fontSize: '11px', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Remove attached
+                </button>
+              )}
+            </div>
             <input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ fontSize: '13px', border: 'none', padding: '2px 0' }} />
+            {attachedPdf && (
+              <div style={{ fontSize: '11px', color: '#15803d', fontWeight: 'bold', marginTop: '4px', backgroundColor: '#dcfce7', padding: '3px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                📎 {attachedPdf.name} (will concatenate with report)
+              </div>
+            )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '6px' }}>
             <button
@@ -2908,7 +2934,14 @@ export default function SKFQualityApp() {
 
       {activeTab === 'entry' ? (
         <div style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <FormTRB02Machine1374 selectedFormKey={selectedForm} filters={appliedFilters} setRecords={setRecords} onRecordSaved={loadRecordsFromCloud} />
+          <FormTRB02Machine1374
+            selectedFormKey={selectedForm}
+            filters={appliedFilters}
+            setRecords={setRecords}
+            onRecordSaved={loadRecordsFromCloud}
+            attachedPdf={attachedPdf}
+            onClearAttachedPdf={() => setAttachedPdf(null)}
+          />
         </div>
       ) : (
         <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
