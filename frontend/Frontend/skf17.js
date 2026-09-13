@@ -2770,24 +2770,6 @@ export default function SKFQualityApp() {
             <h2 style={{ margin: 0, fontSize: '22px' }}>SKF Quality Assurance Portal</h2>
             <span style={{ fontSize: '12px', opacity: 0.8 }}>First Off Inspection Management System</span>
           </div>
-          <span
-            style={{
-              fontSize: '11px',
-              padding: '3px 8px',
-              borderRadius: '12px',
-              fontWeight: 'bold',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              backgroundColor: isSupabaseConfigured ? 'rgba(34, 197, 94, 0.2)' : 'rgba(234, 179, 8, 0.2)',
-              color: isSupabaseConfigured ? '#4ade80' : '#fde047',
-              border: isSupabaseConfigured ? '1px solid rgba(34, 197, 94, 0.4)' : '1px solid rgba(234, 179, 8, 0.4)'
-            }}
-            title={isSupabaseConfigured ? 'Connected to Supabase Cloud Database & Storage' : 'Running with local state. Add Supabase keys to .env to enable cloud storage'}
-          >
-            <CloudIcon size={13} color="currentColor" />
-            {isSupabaseConfigured ? (isCloudSyncing ? 'Cloud Syncing...' : 'Supabase Connected') : 'Local Mode (Supabase Ready)'}
-          </span>
         </div>
         <div>
           <button
