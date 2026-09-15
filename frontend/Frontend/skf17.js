@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
+import skfLogo from './skf-logo.jpg';
 import { 
   supabase, 
   isSupabaseConfigured, 
@@ -154,6 +155,31 @@ const loadHtml2Pdf = () => {
   });
 };
 
+export const formatDateToDDMMYY = (dateStr) => {
+  if (!dateStr) return '';
+  const str = String(dateStr).trim();
+  // YYYY-MM-DD or YYYY/MM/DD
+  const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (isoMatch) {
+    const [, yyyy, mm, dd] = isoMatch;
+    const yy = yyyy.slice(-2);
+    return `${dd.padStart(2, '0')}/${mm.padStart(2, '0')}/${yy}`;
+  }
+  // DD/MM/YYYY or DD-MM-YYYY
+  const fullYearMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (fullYearMatch) {
+    const [, dd, mm, yyyy] = fullYearMatch;
+    return `${dd.padStart(2, '0')}/${mm.padStart(2, '0')}/${yyyy.slice(-2)}`;
+  }
+  // DD/MM/YY or DD-MM-YY
+  const shortYearMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2})$/);
+  if (shortYearMatch) {
+    const [, dd, mm, yy] = shortYearMatch;
+    return `${dd.padStart(2, '0')}/${mm.padStart(2, '0')}/${yy}`;
+  }
+  return str;
+};
+
 const defaultInitialTableData = [
   { id: 1, parameter: 'Track Diameter', symbol: 'Di', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''] },
   { id: 2, parameter: 'Track Ovality', symbol: 'VDi', tol: '', samples: ['', '', '', '', ''] },
@@ -305,6 +331,178 @@ const defaultFlangeGrindingTableData = [
   { id: 'fg-10', isVisualGroup: true, isFirstInGroup: false, parameter: 'Visual Inspection', subParameter: 'No cut marks on flange', samples: ['', '', '', '', ''] }
 ];
 
+const defaultAssemblyTableData = [
+  {
+    id: 'as-1',
+    parameter: 'CONE HEIGHT',
+    symbol: 'Ti',
+    sampleSize: '',
+    isDiagonalTol: true,
+    tol: { top: '', bottom: '' },
+    samples: ['', '', '', '', '']
+  },
+  {
+    id: 'as-2',
+    parameter: 'CAGE CLEARANCE',
+    symbol: 'Gcr',
+    sampleSize: '',
+    isDiagonalTol: true,
+    tol: { top: '', bottom: '' },
+    samples: ['', '', '', '', '']
+  },
+  {
+    id: 'as-3',
+    parameter: 'OD DIAMETER',
+    symbol: 'D',
+    sampleSize: '',
+    isDiagonalTol: true,
+    tol: { top: '', bottom: '' },
+    samples: ['', '', '', '', '']
+  },
+  {
+    id: 'as-4',
+    parameter: 'BEARING VIBRATION',
+    symbol: '-',
+    sampleSize: '',
+    isVibrationRow: true,
+    isStackedTol: true,
+    tol: { top: '', bottom: '' },
+    samples: [
+      { sub1: { top: '', bottom: '' }, sub2: { top: '', bottom: '' } },
+      { sub1: { top: '', bottom: '' }, sub2: { top: '', bottom: '' } },
+      { sub1: { top: '', bottom: '' }, sub2: { top: '', bottom: '' } },
+      { sub1: { top: '', bottom: '' }, sub2: { top: '', bottom: '' } },
+      { sub1: { top: '', bottom: '' }, sub2: { top: '', bottom: '' } }
+    ]
+  },
+  {
+    id: 'as-5',
+    parameter: 'MISSING ROLLER CHECK',
+    symbol: '-',
+    sampleSize: '',
+    isVisualOption: true,
+    isStackedTol: true,
+    tol: '',
+    samples: ['', '', '', '', '']
+  },
+  {
+    id: 'as-6',
+    parameter: 'WASHING UNIT',
+    symbol: '-',
+    sampleSize: '',
+    isVisualOption: true,
+    tol: '',
+    samples: ['', '', '', '', '']
+  },
+  {
+    id: 'as-7',
+    parameter: 'OILING UNIT',
+    symbol: '-',
+    sampleSize: '',
+    isVisualOption: true,
+    tol: '',
+    samples: ['', '', '', '', '']
+  },
+  {
+    id: 'as-8',
+    parameter: 'VISUAL CHECK\n(No marks on rollers/cages/rings)',
+    symbol: '-',
+    sampleSize: '',
+    isVisualOption: true,
+    tol: '',
+    samples: ['', '', '', '', '']
+  }
+];
+
+const defaultQualityEquipmentsTableData = [
+  // Inner Ring
+  { id: 'qe-ir-hdr', isSectionHeader: true, sectionTitle: 'Inner Ring:' },
+  { id: 'qe-ir-1', section: 'Inner Ring', srNo: '1', equipmentName: 'NDT', parameterChecked: 'Hardness Inspection', outlierAvailable: '', verificationOutlier: '', releaseProduction: '', spanAcross: false, spanText: '' },
+  { id: 'qe-ir-2', section: 'Inner Ring', srNo: '2', equipmentName: 'ABG', parameterChecked: 'Bore diameter', outlierAvailable: '', verificationOutlier: '', releaseProduction: '', spanAcross: false, spanText: '' },
+  
+  // Outer Ring
+  { id: 'qe-or-hdr', isSectionHeader: true, sectionTitle: 'Outer Ring:' },
+  { id: 'qe-or-1', section: 'Outer Ring', srNo: '1', equipmentName: 'NDT', parameterChecked: 'Hardness Inspection', outlierAvailable: '', verificationOutlier: '', releaseProduction: '', spanAcross: false, spanText: '' },
+  { id: 'qe-or-2', section: 'Outer Ring', srNo: '2', equipmentName: 'MMA', parameterChecked: 'Cup Height', outlierAvailable: '', verificationOutlier: '', releaseProduction: '', spanAcross: false, spanText: '' },
+  { id: 'qe-or-3', section: 'Outer Ring', srNo: '3', equipmentName: 'MMA', parameterChecked: 'Outer diameter', outlierAvailable: '', verificationOutlier: '', releaseProduction: '', spanAcross: false, spanText: '' },
+  
+  // Assembly
+  { id: 'qe-as-hdr', isSectionHeader: true, sectionTitle: 'Assembly:' },
+  { id: 'qe-as-1', section: 'Assembly', srNo: '1', equipmentName: 'XHF', parameterChecked: 'Cone height', outlierAvailable: '', verificationOutlier: '', releaseProduction: '', spanAcross: false, spanText: '' },
+  { id: 'qe-as-2', section: 'Assembly', srNo: '2', equipmentName: 'MVR 110', parameterChecked: 'Noise Inspection', outlierAvailable: '', verificationOutlier: '', releaseProduction: '', spanAcross: false, spanText: '' },
+  { id: 'qe-as-3', section: 'Assembly', srNo: '3', equipmentName: 'Weight Pokayoke', parameterChecked: 'Missing Roller Check', outlierAvailable: '', verificationOutlier: '', releaseProduction: '', spanAcross: false, spanText: '' }
+];
+
+const defaultMarkingTableData = [
+  { id: 'mk-1', parameter: '• Visual Inspection', isVisualGroup: true, isFirstInGroup: true, groupRowSpan: 3, criteria: 'No missing letters', isMarkingOnly: true, samples: ['', '', '', '', ''] },
+  { id: 'mk-2', parameter: '• Visual Inspection', isVisualGroup: true, isFirstInGroup: false, criteria: 'Marking clarity', isMarkingOnly: true, samples: ['', '', '', '', ''] },
+  { id: 'mk-3', parameter: '• Visual Inspection', isVisualGroup: true, isFirstInGroup: false, criteria: 'Centering of letters & Orientation', isMarkingOnly: true, samples: ['', '', '', '', ''] }
+];
+
+const parseVibrationSample = (val) => {
+  if (!val) return { sub1: { top: '', bottom: '' }, sub2: { top: '', bottom: '' } };
+  if (typeof val === 'object' && !Array.isArray(val)) {
+    return {
+      sub1: {
+        top: val.sub1?.top ?? val.top1 ?? (val.sub1 && typeof val.sub1 !== 'object' ? String(val.sub1) : ''),
+        bottom: val.sub1?.bottom ?? val.bottom1 ?? ''
+      },
+      sub2: {
+        top: val.sub2?.top ?? val.top2 ?? (val.sub2 && typeof val.sub2 !== 'object' ? String(val.sub2) : ''),
+        bottom: val.sub2?.bottom ?? val.bottom2 ?? ''
+      }
+    };
+  }
+  if (Array.isArray(val)) {
+    return {
+      sub1: { top: val[0]?.top ?? val[0] ?? '', bottom: val[0]?.bottom ?? '' },
+      sub2: { top: val[1]?.top ?? val[1] ?? '', bottom: val[1]?.bottom ?? '' }
+    };
+  }
+  return { sub1: { top: String(val), bottom: '' }, sub2: { top: '', bottom: '' } };
+};
+
+const isQualityEquipmentsForm = (formKey = '', op = '') => {
+  const upperKey = (formKey || '').toUpperCase();
+  const upperOp = (op || '').toUpperCase();
+  return (
+    upperKey.includes('TRB/17') ||
+    upperKey === 'SKF/QA/TRB/17' ||
+    upperOp.includes('QUALITY EQUIPMENT') ||
+    upperOp.includes('QUALITY EQUIPMENTS')
+  );
+};
+
+const isAssemblyForm = (formKey = '', op = '') => {
+  if (isQualityEquipmentsForm(formKey, op)) return false;
+  const upperKey = (formKey || '').toUpperCase();
+  const upperOp = (op || '').toUpperCase();
+  return (
+    upperKey.includes('TRB/09') ||
+    upperKey === 'SKF/QA/TRB/09' ||
+    upperOp === 'ASSEMBLY' ||
+    upperOp.includes('ASSEMBLY OFF')
+  );
+};
+
+const isMarkingForm = (formKey = '', op = '', ringSection = '') => {
+  if (isQualityEquipmentsForm(formKey, op)) return false;
+  if (isAssemblyForm(formKey, op)) return false;
+  const upperKey = (formKey || '').toUpperCase();
+  const upperOp = (op || '').toUpperCase();
+  return (
+    upperKey.includes('TRB/08') ||
+    upperKey === 'SKF/QA/TRB/08' ||
+    upperKey === 'SKF/QA/TRB/08-1' ||
+    upperKey === 'SKF/QA/TRB/08-2' ||
+    upperKey === 'SKF/QA/TRB/08-OR' ||
+    upperKey === 'SKF/QA/TRB/08-IR' ||
+    upperOp === 'MARKING' ||
+    upperOp.includes('ETCHING') ||
+    upperOp.includes('MARKING')
+  );
+};
+
 const isFlangeGrindingForm = (formKey = '', op = '') => {
   const upperKey = (formKey || '').toUpperCase();
   const upperOp = (op || '').toUpperCase();
@@ -355,6 +553,32 @@ const isTrackHoningForm = (formKey = '', op = '', ringSection = '') => {
   return isInnerRingTrackHoningForm(formKey, op, ringSection) || isOuterRingTrackHoningForm(formKey, op, ringSection);
 };
 
+const getRingSectionFromFormKey = (formKey = '', fallback = '') => {
+  if (!formKey) return fallback;
+  const upper = formKey.toUpperCase();
+  if (upper.includes('09') || upper.includes('17')) return 'ASSEMBLY';
+  if (
+    upper.includes('06') ||
+    upper.includes('07') ||
+    upper === 'SKF/QA/TRB/08' ||
+    upper.includes('08-2') ||
+    upper.includes('08-OR')
+  ) {
+    return 'OUTER RING';
+  }
+  if (
+    upper.includes('02') ||
+    upper.includes('03') ||
+    upper.includes('04') ||
+    upper.includes('05') ||
+    upper === 'SKF/QA/TRB/08-1' ||
+    upper.includes('08-IR')
+  ) {
+    return 'INNER RING';
+  }
+  return fallback;
+};
+
 const isOuterRingTrackGrinding = (formKey = '', op = '', ringSection = '') => {
   const upperKey = (formKey || '').toUpperCase();
   const upperOp = (op || '').toUpperCase();
@@ -364,11 +588,20 @@ const isOuterRingTrackGrinding = (formKey = '', op = '', ringSection = '') => {
     upperKey.includes('TRB/06') ||
     upperKey === 'SKF/QA/TRB/06-1' ||
     upperKey === 'SKF/QA/TRB/06-2' ||
-    (upperRing.includes('OUTER') && !upperOp.includes('HON') && !upperOp.includes('BORE') && !upperOp.includes('FLANGE'))
+    (upperRing.includes('OUTER') && !upperOp.includes('HON') && !upperOp.includes('BORE') && !upperOp.includes('FLANGE') && !isMarkingForm(formKey, op, ringSection))
   );
 };
 
 const getTableDataForForm = (formKey = '', op = '', ringSection = '') => {
+  if (isQualityEquipmentsForm(formKey, op)) {
+    return JSON.parse(JSON.stringify(defaultQualityEquipmentsTableData));
+  }
+  if (isAssemblyForm(formKey, op)) {
+    return JSON.parse(JSON.stringify(defaultAssemblyTableData));
+  }
+  if (isMarkingForm(formKey, op, ringSection)) {
+    return JSON.parse(JSON.stringify(defaultMarkingTableData));
+  }
   if (isFlangeGrindingForm(formKey, op)) {
     return JSON.parse(JSON.stringify(defaultFlangeGrindingTableData));
   }
@@ -686,6 +919,219 @@ const initialDatabase = [
       }
     ],
     pdfUrl: null
+  },
+  {
+    id: 'REC-875',
+    date: '01/09/26',
+    section: 'TRB',
+    channel: 'T6',
+    ringSection: 'ASSEMBLY',
+    machine: 'T6',
+    formatNo: 'SKF/QA/TRB/09',
+    operation: 'ASSEMBLY',
+    type: '32210',
+    shift: 'II',
+    inspector: 'AVS',
+    status: 'YES',
+    formData: {
+      formatNo: 'SKF/QA/TRB/09',
+      revisionNo: '1',
+      revDate: '14/07',
+      prepBy: 'AVS',
+      appdBy: 'SS',
+      grinding: 'ASSEMBLY',
+      channelNo: 'T6',
+      tv: '',
+      mv: '40',
+      coneHeightMV: '40',
+      type: '32210',
+      operation: 'ASSEMBLY',
+      date: '01/09/26',
+      shift: 'II',
+      machineNo: '',
+      machineReleased: 'YES',
+      inspectorSignature: 'SS',
+      inspectorName: 'AVS',
+      supervisorSignature: 'Sudarshan Shinde',
+      supervisorName: 'Sudarshan Shinde',
+      reasonSelected: 1
+    },
+    tableData: [
+      {
+        id: 'as-1',
+        parameter: 'CONE HEIGHT',
+        symbol: 'Ti',
+        sampleSize: '5',
+        isDiagonalTol: true,
+        tol: { top: '0', bottom: '100' },
+        samples: ['70', '72', '62', '73', '76']
+      },
+      {
+        id: 'as-2',
+        parameter: 'CAGE CLEARANCE',
+        symbol: 'Gcr',
+        sampleSize: '5',
+        isDiagonalTol: true,
+        tol: { top: '100', bottom: '350' },
+        samples: ['280', '280', '240', '210', '240']
+      },
+      {
+        id: 'as-3',
+        parameter: 'OD DIAMETER',
+        symbol: 'D',
+        sampleSize: '5',
+        isDiagonalTol: true,
+        tol: { top: '-3', bottom: '-12' },
+        samples: ['-7', '-6', '-4', '-7', '-5']
+      },
+      {
+        id: 'as-4',
+        parameter: 'BEARING VIBRATION',
+        symbol: '-',
+        sampleSize: '10',
+        isVibrationRow: true,
+        isStackedTol: true,
+        tol: { top: 'Q', bottom: '66' },
+        samples: [
+          { sub1: { top: 'Q', bottom: '66' }, sub2: { top: 'Q', bottom: '66' } },
+          { sub1: { top: 'Q', bottom: '66' }, sub2: { top: 'Q', bottom: '66' } },
+          { sub1: { top: 'Q', bottom: '66' }, sub2: { top: 'Q', bottom: '66' } },
+          { sub1: { top: 'Q', bottom: '66' }, sub2: { top: 'Q', bottom: '66' } },
+          { sub1: { top: 'Q', bottom: '66' }, sub2: { top: 'Q', bottom: '66' } }
+        ]
+      },
+      {
+        id: 'as-5',
+        parameter: 'MISSING ROLLER CHECK',
+        symbol: '-',
+        sampleSize: '1',
+        isVisualOption: true,
+        isStackedTol: true,
+        tol: 'Min. 405\nMax. 411',
+        samples: ['408.5', 'nul', 'nul', 'nul', 'nul']
+      },
+      {
+        id: 'as-6',
+        parameter: 'WASHING UNIT',
+        symbol: '-',
+        sampleSize: '-',
+        isVisualOption: true,
+        tol: '',
+        samples: ['✓', 'nul', 'nul', 'nul', 'nul']
+      },
+      {
+        id: 'as-7',
+        parameter: 'OILING UNIT',
+        symbol: '-',
+        sampleSize: '-',
+        isVisualOption: true,
+        tol: '',
+        samples: ['✓', 'nul', 'nul', 'nul', 'nul']
+      },
+      {
+        id: 'as-8',
+        parameter: 'VISUAL CHECK\n(No marks on rollers/cages/rings)',
+        symbol: '-',
+        sampleSize: '5',
+        isVisualOption: true,
+        tol: '',
+        samples: ['✓', '✓', '✓', '✓', '✓']
+      }
+    ],
+    pdfUrl: null
+  },
+  {
+    id: 'REC-876',
+    date: '2026-09-03',
+    section: 'TRB',
+    channel: 'T-6',
+    ringSection: 'Assembly',
+    machine: '-',
+    formatNo: 'SKF/QA/TRB/17',
+    operation: 'QUALITY EQUIPMENTS',
+    type: '33110',
+    shift: 'I',
+    inspector: 'Bhaskar',
+    status: 'YES',
+    formData: {
+      formatNo: 'SKF/QA/TRB/17',
+      revisionNo: '1',
+      revDate: '14/07',
+      prepBy: 'AVS',
+      appdBy: 'SS',
+      grinding: 'Assembly',
+      channelNo: 'T-6',
+      type: '33110',
+      operation: 'QUALITY EQUIPMENTS',
+      date: '03/09/26',
+      shift: 'I',
+      machineNo: '-',
+      machineReleased: 'YES',
+      setupApproval: 'Approved',
+      inspectorSignature: 'Bhaskar',
+      inspectorName: 'Bhaskar',
+      supervisorSignature: '',
+      supervisorName: '',
+      reasonSelected: 1
+    },
+    tableData: [
+      { id: 'qe-ir-hdr', isSectionHeader: true, sectionTitle: 'Inner Ring:' },
+      { id: 'qe-ir-1', section: 'Inner Ring', srNo: '1', equipmentName: 'NDT', parameterChecked: 'Hardness Inspection', outlierAvailable: 'Yes', verificationOutlier: 'Yes', releaseProduction: 'Yes' },
+      { id: 'qe-ir-2', section: 'Inner Ring', srNo: '2', equipmentName: 'ABG', parameterChecked: 'Bore diameter', outlierAvailable: 'Yes', verificationOutlier: 'Yes', releaseProduction: 'Yes' },
+      
+      { id: 'qe-or-hdr', isSectionHeader: true, sectionTitle: 'Outer Ring:' },
+      { id: 'qe-or-1', section: 'Outer Ring', srNo: '1', equipmentName: 'NDT', parameterChecked: 'Hardness Inspection', outlierAvailable: 'NO', verificationOutlier: 'NO', releaseProduction: 'NO' },
+      { id: 'qe-or-2', section: 'Outer Ring', srNo: '2', equipmentName: 'MMA', parameterChecked: 'Cup Height', outlierAvailable: 'Yes', verificationOutlier: 'Yes', releaseProduction: 'Yes' },
+      { id: 'qe-or-3', section: 'Outer Ring', srNo: '3', equipmentName: 'MMA', parameterChecked: 'Outer diameter', outlierAvailable: '100% Checked by F.O.D', verificationOutlier: '', releaseProduction: '', spanAcross: true, spanText: '100% Checked by F.O.D' },
+      
+      { id: 'qe-as-hdr', isSectionHeader: true, sectionTitle: 'Assembly:' },
+      { id: 'qe-as-1', section: 'Assembly', srNo: '1', equipmentName: 'XHF', parameterChecked: 'Cone height', outlierAvailable: 'Yes', verificationOutlier: 'Yes', releaseProduction: 'Yes' },
+      { id: 'qe-as-2', section: 'Assembly', srNo: '2', equipmentName: 'MVR 110', parameterChecked: 'Noise Inspection', outlierAvailable: 'Yes', verificationOutlier: 'Yes', releaseProduction: 'Yes' },
+      { id: 'qe-as-3', section: 'Assembly', srNo: '3', equipmentName: 'Weight Pokayoke', parameterChecked: 'Missing Roller Check', outlierAvailable: 'Yes', verificationOutlier: 'Yes', releaseProduction: 'Yes' }
+    ],
+    pdfUrl: null
+  },
+  {
+    id: 'REC-877',
+    date: '03/09/26',
+    section: 'TRB',
+    channel: 'T-6',
+    ringSection: 'Outer Ring',
+    machine: '-',
+    formatNo: 'SKF/QA/TRB/08',
+    operation: 'MARKING',
+    type: '33110 (T6 14 2467)',
+    shift: 'I',
+    inspector: 'Santosh',
+    status: 'YES',
+    formData: {
+      formatNo: 'SKF/QA/TRB/08',
+      revisionNo: '1',
+      revDate: '14/07',
+      prepBy: 'AVS',
+      appdBy: 'SS',
+      grinding: 'OUTER RING',
+      channelNo: 'T-6',
+      tv: '',
+      mv: '',
+      type: '33110 (T6 14 2467)',
+      operation: 'ETCHING / MARKING',
+      date: '03/09/26',
+      shift: 'I',
+      machineNo: '-',
+      machineReleased: 'YES',
+      inspectorSignature: 'Santosh',
+      inspectorName: 'Santosh',
+      supervisorSignature: '',
+      supervisorName: '',
+      reasonSelected: 1
+    },
+    tableData: [
+      { id: 'mk-1', parameter: '• Visual Inspection', isVisualGroup: true, isFirstInGroup: true, groupRowSpan: 3, criteria: 'No missing letters', isMarkingOnly: true, samples: ['✓', '✓', '✓', '✓', '✓'] },
+      { id: 'mk-2', parameter: '• Visual Inspection', isVisualGroup: true, isFirstInGroup: false, criteria: 'Marking clarity', isMarkingOnly: true, samples: ['✓', '✓', '✓', '✓', '✓'] },
+      { id: 'mk-3', parameter: '• Visual Inspection', isVisualGroup: true, isFirstInGroup: false, criteria: 'Centering of letters & Orientation', isMarkingOnly: true, samples: ['✓', '✓', '✓', '✓', '✓'] }
+    ],
+    pdfUrl: null
   }
 ];
 
@@ -699,7 +1145,13 @@ const FORM_METADATA = {
   'SKF/QA/TRB/06-2': { formatNo: 'SKF/QA/TRB/06', operation: 'TRACK GRINDING (2)' },
   'SKF/QA/TRB/07-1': { formatNo: 'SKF/QA/TRB/07', operation: 'TRACK HONNING (1)' },
   'SKF/QA/TRB/07-2': { formatNo: 'SKF/QA/TRB/07', operation: 'TRACK HONNING (2)' },
-  'SKF/QA/TRB/08': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' }
+  'SKF/QA/TRB/08': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
+  'SKF/QA/TRB/08-OR': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
+  'SKF/QA/TRB/08-IR': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
+  'SKF/QA/TRB/08-1': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
+  'SKF/QA/TRB/08-2': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
+  'SKF/QA/TRB/09': { formatNo: 'SKF/QA/TRB/09', operation: 'ASSEMBLY' },
+  'SKF/QA/TRB/17': { formatNo: 'SKF/QA/TRB/17', operation: 'QUALITY EQUIPMENTS' }
 };
 
 const parseDiagonalValue = (val) => {
@@ -730,6 +1182,7 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
     channelNo: record.channel || record.channelNo || '',
     tv: record.tv || '',
     mv: record.mv || '',
+    coneHeightMV: record.coneHeightMV || record.mv || '',
     type: record.type || '',
     operation: record.operation || '',
     date: record.date || '',
@@ -743,40 +1196,49 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
     reasonSelected: record.reasonSelected || null
   };
 
-  const isFlangeGrinding = (record?.operation || formData.operation || '').toUpperCase().includes('FLANGE') ||
-    (record?.formatNo || formData.formatNo || '').includes('TRB/04');
-  const isBoreGrinding = (record?.operation || formData.operation || '').toUpperCase().includes('BORE') ||
-    (record?.formatNo || formData.formatNo || '').includes('TRB/03');
-  const isInnerHoning = isInnerRingTrackHoningForm(
+  const isQualityEquipments = isQualityEquipmentsForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation);
+  const isAssembly = !isQualityEquipments && isAssemblyForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation);
+  const isMarking = !isQualityEquipments && !isAssembly && isMarkingForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation, record?.ringSection || formData.grinding);
+  const isFlangeGrinding = !isQualityEquipments && !isAssembly && !isMarking && ((record?.operation || formData.operation || '').toUpperCase().includes('FLANGE') ||
+    (record?.formatNo || formData.formatNo || '').includes('TRB/04'));
+  const isBoreGrinding = !isQualityEquipments && !isAssembly && !isMarking && ((record?.operation || formData.operation || '').toUpperCase().includes('BORE') ||
+    (record?.formatNo || formData.formatNo || '').includes('TRB/03'));
+  const isInnerHoning = !isQualityEquipments && !isAssembly && !isMarking && isInnerRingTrackHoningForm(
     record?.formatNo || formData.formatNo || '',
     record?.operation || formData.operation || '',
     record?.ringSection || formData.grinding || ''
   );
-  const isOuterHoning = isOuterRingTrackHoningForm(
+  const isOuterHoning = !isQualityEquipments && !isAssembly && !isMarking && isOuterRingTrackHoningForm(
     record?.formatNo || formData.formatNo || '',
     record?.operation || formData.operation || '',
     record?.ringSection || formData.grinding || ''
   );
   const isHoning = isInnerHoning || isOuterHoning;
-  const isOuterGrinding = (record?.formatNo || formData.formatNo || '').includes('TRB/06') ||
-    ((record?.ringSection || formData.grinding || '').toUpperCase().includes('OUTER') && !isHoning && !isBoreGrinding && !isFlangeGrinding);
-  const fallbackTableData = isFlangeGrinding
-    ? defaultFlangeGrindingTableData
-    : (isBoreGrinding
-      ? defaultBoreGrindingTableData
-      : (isInnerHoning
-        ? defaultInnerRingTrackHoningTableData
-        : (isOuterHoning
-          ? defaultOuterRingTrackHoningTableData
-          : (isOuterGrinding ? defaultOuterRingTrackGrindingTableData : defaultInitialTableData))));
+  const isOuterGrinding = !isQualityEquipments && !isAssembly && !isMarking && ((record?.formatNo || formData.formatNo || '').includes('TRB/06') ||
+    ((record?.ringSection || formData.grinding || '').toUpperCase().includes('OUTER') && !isHoning && !isBoreGrinding && !isFlangeGrinding));
+  const fallbackTableData = isQualityEquipments
+    ? defaultQualityEquipmentsTableData
+    : (isAssembly
+      ? defaultAssemblyTableData
+      : (isMarking
+        ? defaultMarkingTableData
+        : (isFlangeGrinding
+          ? defaultFlangeGrindingTableData
+          : (isBoreGrinding
+            ? defaultBoreGrindingTableData
+            : (isInnerHoning
+              ? defaultInnerRingTrackHoningTableData
+              : (isOuterHoning
+                ? defaultOuterRingTrackHoningTableData
+                : (isOuterGrinding ? defaultOuterRingTrackGrindingTableData : defaultInitialTableData)))))));
   const tableData = record.tableData || fallbackTableData;
 
   const reasons = [
     { id: 1, label: "1) Type Change" },
     { id: 2, label: "2) Major Breakdown" },
-    { id: 3, label: "3) Shut Down" },
+    { id: 3, label: isQualityEquipments ? "3) Shift Change" : "3) Shut Down" },
     { id: 4, label: "4) Major Tooling Change" },
-    { id: 5, label: "5) Material Change" }
+    { id: 5, label: isQualityEquipments ? "5) Man / Machine Change" : "5) Material Change" }
   ];
 
   const tableCellStyle = {
@@ -791,7 +1253,7 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
   };
 
   const renderSampleValue = (val) => {
-    const isTick = val === '✓' || val === 'tick' || val === 'TICK';
+    const isTick = val === '✓' || val === 'tick' || val === 'TICK' || val === 'v' || val === 'V';
     const isCross = val === '✗' || val === 'cross' || val === 'CROSS' || val === 'x' || val === 'X';
     const isSlash = val === 'nul' || val === 'NUL' || val === 'slash' || val === 'SLASH' || val === '/' || val === 'null' || val === 'NULL';
 
@@ -841,80 +1303,252 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                 ABU QA-HB
               </div>
             </td>
-            <td rowSpan="4" style={{ textAlign: 'center', fontSize: '19px', fontWeight: 'bold', width: '46%', verticalAlign: 'middle', letterSpacing: '0.5px', boxSizing: 'border-box' }}>
-              FIRST OFF INSPECTION
+            <td rowSpan="4" style={{ textAlign: 'center', fontSize: isQualityEquipments ? '17px' : '19px', fontWeight: 'bold', width: '46%', verticalAlign: 'middle', letterSpacing: '0.5px', boxSizing: 'border-box' }}>
+              {isQualityEquipments ? 'FIRST OFF INSPECTION QUALITY EQUIPMENTS' : 'FIRST OFF INSPECTION'}
             </td>
             <td style={{ fontSize: '11px', padding: '4px 6px', width: '18%', fontWeight: 'bold', boxSizing: 'border-box' }}>Format No.:</td>
             <td style={{ fontSize: '11px', padding: '4px 6px', width: '14%', fontWeight: 'bold', wordBreak: 'break-all', boxSizing: 'border-box' }}>{formData.formatNo}</td>
           </tr>
           <tr>
             <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Revision No.:</td>
-            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{formData.revisionNo}</td>
+            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>1</td>
           </tr>
           <tr>
-            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Rev. Date:( YY/MM)</td>
-            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{formData.revDate}</td>
+            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Rev. Date:( YY/MM) :</td>
+            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>14/07</td>
           </tr>
           <tr>
-            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Prep. By: {formData.prepBy}</td>
-            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Appd By: {formData.appdBy}</td>
+            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Prep. By: AVS</td>
+            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Appd By: SS</td>
           </tr>
         </tbody>
       </table>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
-        <tbody>
-          <tr>
-            <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span><b>GRINDING :</b> {formData.grinding}</span>
-                <div><b>T.V =</b> {formData.tv}</div>
-              </div>
-            </td>
-            <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
-              <b>DATE :</b> {formData.date}
-            </td>
-          </tr>
-          <tr>
-            <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span><b>CHANNEL NO. :</b> {formData.channelNo}</span>
-                <div><b>M.V =</b> {formData.mv}</div>
-              </div>
-            </td>
-            <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-              <b>SHIFT :</b> {formData.shift}
-            </td>
-          </tr>
-          <tr>
-            <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-              <b>TYPE :</b> {formData.type}
-            </td>
-            <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-              <b>MACHINE NO. :</b> {formData.machineNo}
-            </td>
-          </tr>
-          <tr>
-            <td style={{ padding: '4px 8px', boxSizing: 'border-box' }}><b>OPERATION :</b> {formData.operation}</td>
-            <td style={{ padding: '4px 8px', boxSizing: 'border-box' }}></td>
-          </tr>
-        </tbody>
-      </table>
+      {isQualityEquipments ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+          <tbody>
+            <tr>
+              <td style={{ width: '33.33%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>Type :-</b> {formData.type || ''}
+              </td>
+              <td style={{ width: '33.33%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>Date :-</b> {formatDateToDDMMYY(formData.date)}
+              </td>
+              <td style={{ width: '33.33%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>Channel :-</b> {formData.channelNo || ''}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      ) : isAssembly ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+          <tbody>
+            <tr>
+              <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span><b>ASSEMBLY</b></span>
+                  <div><b>Cone Height MV =</b> {formData.coneHeightMV || formData.mv || ''}</div>
+                </div>
+              </td>
+              <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>DATE :</b> {formatDateToDDMMYY(formData.date)}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>CHANNEL NO :</b> {formData.channelNo}
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>SHIFT :</b> {formData.shift}
+              </td>
+            </tr>
+            <tr>
+              <td colSpan="2" style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>TYPE :</b> {formData.type}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      ) : isMarking ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+          <tbody>
+            <tr>
+              <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <span><b>GRINDING :</b> {formData.grinding || ''}</span>
+              </td>
+              <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>DATE :</b> {formatDateToDDMMYY(formData.date)}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>CHANNEL NO. :</b> {formData.channelNo}
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>SHIFT :</b> {formData.shift}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>TYPE :</b> {formData.type}
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>OPERATION :</b> {formData.operation || 'MARKING'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+          <tbody>
+            <tr>
+              <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span><b>GRINDING :</b> {formData.grinding}</span>
+                  <div><b>T.V =</b> {formData.tv}</div>
+                </div>
+              </td>
+              <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>DATE :</b> {formatDateToDDMMYY(formData.date)}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span><b>CHANNEL NO. :</b> {formData.channelNo}</span>
+                  <div><b>M.V =</b> {formData.mv}</div>
+                </div>
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>SHIFT :</b> {formData.shift}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>TYPE :</b> {formData.type}
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>MACHINE NO. :</b> {formData.machineNo}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '4px 8px', boxSizing: 'border-box' }}><b>OPERATION :</b> {formData.operation}</td>
+              <td style={{ padding: '4px 8px', boxSizing: 'border-box' }}></td>
+            </tr>
+          </tbody>
+        </table>
+      )}
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11.5px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
+      {isQualityEquipments ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
+          <thead>
+            <tr style={{ backgroundColor: '#f9fafb' }}>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold' }}>Sr. No.</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '20%', fontWeight: 'bold' }}>Equipment Name</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '26%', fontWeight: 'bold' }}>Parameter Checked</th>
+              <th style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold', fontSize: '10.5px' }}>Outlier Master Available</th>
+              <th style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold', fontSize: '10.5px' }}>Verification with Outlier Master</th>
+              <th style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold', fontSize: '10.5px' }}>Release for Production</th>
+            </tr>
+            <tr style={{ backgroundColor: '#f9fafb' }}>
+              <th style={{ ...tableCellStyle, fontWeight: 'bold', fontSize: '10.5px' }}>Yes / No</th>
+              <th style={{ ...tableCellStyle, fontWeight: 'bold', fontSize: '10.5px' }}>Yes / No</th>
+              <th style={{ ...tableCellStyle, fontWeight: 'bold', fontSize: '10.5px' }}>Yes / No</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableData.map((row, rIdx) => {
+              if (row.isSectionHeader) {
+                return (
+                  <tr key={row.id || `qe-hdr-${rIdx}`}>
+                    <td colSpan="6" style={{ ...tableCellStyle, textAlign: 'left', padding: '4px 8px', fontWeight: 'bold', backgroundColor: '#f3f4f6' }}>
+                      {row.sectionTitle}
+                    </td>
+                  </tr>
+                );
+              }
+              if (row.spanAcross || row.spanText) {
+                return (
+                  <tr key={row.id || `qe-row-${rIdx}`}>
+                    <td style={{ ...tableCellStyle, width: '9%' }}>{row.srNo}</td>
+                    <td style={{ ...tableCellStyle, width: '20%', fontWeight: 'bold', textAlign: 'left', padding: '3px 6px' }}>{row.equipmentName}</td>
+                    <td style={{ ...tableCellStyle, width: '26%', textAlign: 'left', padding: '3px 6px' }}>{row.parameterChecked}</td>
+                    <td colSpan="3" style={{ ...tableCellStyle, fontWeight: 'bold', padding: '3px 6px' }}>
+                      {row.spanText || row.outlierAvailable || ''}
+                    </td>
+                  </tr>
+                );
+              }
+              return (
+                <tr key={row.id || `qe-row-${rIdx}`}>
+                  <td style={{ ...tableCellStyle, width: '9%' }}>{row.srNo}</td>
+                  <td style={{ ...tableCellStyle, width: '20%', fontWeight: 'bold', textAlign: 'left', padding: '3px 6px' }}>{row.equipmentName}</td>
+                  <td style={{ ...tableCellStyle, width: '26%', textAlign: 'left', padding: '3px 6px' }}>{row.parameterChecked}</td>
+                  <td style={{ ...tableCellStyle, width: '15%' }}>{renderSampleValue(row.outlierAvailable)}</td>
+                  <td style={{ ...tableCellStyle, width: '15%' }}>{renderSampleValue(row.verificationOutlier)}</td>
+                  <td style={{ ...tableCellStyle, width: '15%' }}>{renderSampleValue(row.releaseProduction)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : isMarking ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11.5px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
+          <thead>
+            <tr style={{ backgroundColor: '#f9fafb' }}>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '28%', fontWeight: 'bold', padding: '4px' }}>PARAMETER</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '37%', fontWeight: 'bold', padding: '4px' }}>CRITERIA</th>
+              <th colSpan="5" style={{ ...tableCellStyle, width: '35%', fontWeight: 'bold', padding: '4px 0' }}>SAMPLE NO.</th>
+            </tr>
+            <tr style={{ backgroundColor: '#f9fafb' }}>
+              <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>1</th>
+              <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>2</th>
+              <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>3</th>
+              <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>4</th>
+              <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>5</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableData.map((row, rIdx) => {
+              const samples = row.samples || ['', '', '', '', ''];
+              return (
+                <tr key={row.id || `mk-row-${rIdx}`}>
+                  {rIdx === 0 && (
+                    <td rowSpan={tableData.length} style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '6px 10px', fontWeight: 'bold', verticalAlign: 'middle' }}>
+                      {row.parameter || '• Visual Inspection'}
+                    </td>
+                  )}
+                  <td style={{ ...tableCellStyle, width: '37%', textAlign: 'left', padding: '6px 10px', fontWeight: 'bold' }}>
+                    {row.criteria || row.subParameter || ''}
+                  </td>
+                  {samples.map((val, sIdx) => (
+                    <td key={`mk-sample-${sIdx}`} style={{ ...tableCellStyle, width: '7%', position: 'relative' }}>
+                      {renderSampleValue(val)}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11.5px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
         <thead>
           <tr style={{ backgroundColor: '#f9fafb' }}>
-            <th rowSpan="2" style={{ ...tableCellStyle, width: '28%', fontWeight: 'bold', padding: '4px', boxSizing: 'border-box' }}>PARAMETER</th>
-            <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>SYMBOL</th>
+            <th rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', fontWeight: 'bold', padding: '4px', boxSizing: 'border-box' }}>PARAMETER</th>
+            <th rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>SYMBOL</th>
             <th rowSpan="2" style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold', fontSize: '11.5px', boxSizing: 'border-box' }}>TOL (µm)</th>
-            <th colSpan="5" style={{ ...tableCellStyle, width: '45%', fontWeight: 'bold', fontSize: '11.5px', padding: '4px 0', boxSizing: 'border-box' }}>SAMPLE NO.</th>
+            {isAssembly && (
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', fontSize: '11px', boxSizing: 'border-box' }}>SAMPLE SIZE</th>
+            )}
+            <th colSpan="5" style={{ ...tableCellStyle, width: isAssembly ? '40%' : '45%', fontWeight: 'bold', fontSize: '11.5px', padding: '4px 0', boxSizing: 'border-box' }}>{isAssembly ? 'READINGS' : 'SAMPLE NO.'}</th>
           </tr>
           <tr style={{ backgroundColor: '#f9fafb' }}>
-            <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>1</th>
-            <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>2</th>
-            <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>3</th>
-            <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>4</th>
-            <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>5</th>
+            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>1</th>
+            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>2</th>
+            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>3</th>
+            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>4</th>
+            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>5</th>
           </tr>
         </thead>
         <tbody>
@@ -925,18 +1559,23 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               return (
                 <React.Fragment key={`doc-double-row-${row.id}`}>
                   <tr>
-                    <td rowSpan="2" style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
-                    <td rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
+                    <td rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
+                    <td rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
                     <td rowSpan="2" style={{ ...tableCellStyle, width: '13%', boxSizing: 'border-box' }}>{renderSampleValue(row.tol)}</td>
+                    {isAssembly && (
+                      <td rowSpan="2" style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        {row.sampleSize || ''}
+                      </td>
+                    )}
                     {r1.map((val, sIdx) => (
-                      <td key={`r1-${sIdx}`} style={{ ...tableCellStyle, width: '9%', position: 'relative', boxSizing: 'border-box' }}>
+                      <td key={`r1-${sIdx}`} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
                         {renderSampleValue(val)}
                       </td>
                     ))}
                   </tr>
                   <tr>
                     {r2.map((val, sIdx) => (
-                      <td key={`r2-${sIdx}`} style={{ ...tableCellStyle, width: '9%', position: 'relative', boxSizing: 'border-box' }}>
+                      <td key={`r2-${sIdx}`} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
                         {renderSampleValue(val)}
                       </td>
                     ))}
@@ -945,15 +1584,57 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               );
             }
 
-            if (row.isDiagonal || row.isDiagonalSplit) {
+            if (row.isVibrationRow) {
+              const tolVal = parseDiagonalValue(row.tol);
+              return (
+                <tr key={`doc-row-${row.id}`}>
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    {row.parameter}
+                  </td>
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    {row.symbol}
+                  </td>
+                  <td style={{ ...tableCellStyle, width: '13%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: '30px' }}>
+                      <span style={{ fontSize: '10.5px', fontWeight: 'bold', lineHeight: '13px' }}>{tolVal.top || 'Q'}</span>
+                      <span style={{ fontSize: '10.5px', fontWeight: 'bold', lineHeight: '13px' }}>{tolVal.bottom || '66'}</span>
+                    </div>
+                  </td>
+                  {isAssembly && (
+                    <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.sampleSize || '10'}
+                    </td>
+                  )}
+                  {(row.samples || []).map((val, sIdx) => {
+                    const vib = parseVibrationSample(val);
+                    return (
+                      <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', padding: 0, boxSizing: 'border-box' }}>
+                        <div style={{ display: 'flex', width: '100%', height: '100%', minHeight: '30px' }}>
+                          <div style={{ width: '50%', borderRight: '1px solid #000', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <span style={{ borderBottom: '0.5px solid #888', fontSize: '9.5px', fontWeight: 'bold', lineHeight: '14px', textAlign: 'center' }}>{vib.sub1.top || ''}</span>
+                            <span style={{ fontSize: '9.5px', fontWeight: 'bold', lineHeight: '14px', textAlign: 'center' }}>{vib.sub1.bottom || ''}</span>
+                          </div>
+                          <div style={{ width: '50%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <span style={{ borderBottom: '0.5px solid #888', fontSize: '9.5px', fontWeight: 'bold', lineHeight: '14px', textAlign: 'center' }}>{vib.sub2.top || ''}</span>
+                            <span style={{ fontSize: '9.5px', fontWeight: 'bold', lineHeight: '14px', textAlign: 'center' }}>{vib.sub2.bottom || ''}</span>
+                          </div>
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            }
+
+            if (row.isDiagonalTol) {
               const tolVal = parseDiagonalValue(row.tol);
               const isTolNull = (tolVal.top === 'nul' || tolVal.top === 'NUL') && (tolVal.bottom === 'nul' || tolVal.bottom === 'NUL');
               return (
                 <tr key={`doc-row-${row.id}`}>
-                  <td style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.parameter}
                   </td>
-                  <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.symbol}
                   </td>
                   <td style={{ ...tableCellStyle, width: '13%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
@@ -977,11 +1658,62 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                       )}
                     </div>
                   </td>
+                  {isAssembly && (
+                    <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.sampleSize || ''}
+                    </td>
+                  )}
+                  {(row.samples || []).map((val, sIdx) => (
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
+                      {renderSampleValue(val)}
+                    </td>
+                  ))}
+                </tr>
+              );
+            }
+
+            if (row.isDiagonal || row.isDiagonalSplit) {
+              const tolVal = parseDiagonalValue(row.tol);
+              const isTolNull = (tolVal.top === 'nul' || tolVal.top === 'NUL') && (tolVal.bottom === 'nul' || tolVal.bottom === 'NUL');
+              return (
+                <tr key={`doc-row-${row.id}`}>
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    {row.parameter}
+                  </td>
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    {row.symbol}
+                  </td>
+                  <td style={{ ...tableCellStyle, width: '13%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
+                    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '28px' }}>
+                      <svg
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                      >
+                        <line x1="0" y1="100" x2="100" y2="0" stroke="#000" strokeWidth="1.2" />
+                      </svg>
+                      {!isTolNull && (
+                        <>
+                          <span style={{ position: 'absolute', top: '1px', left: '3px', fontSize: '10.5px', fontWeight: 'bold', lineHeight: 1 }}>
+                            {tolVal.top}
+                          </span>
+                          <span style={{ position: 'absolute', bottom: '1px', right: '3px', fontSize: '10.5px', fontWeight: 'bold', lineHeight: 1 }}>
+                            {tolVal.bottom}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                  {isAssembly && (
+                    <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.sampleSize || ''}
+                    </td>
+                  )}
                   {(row.samples || []).map((val, sIdx) => {
                     const dVal = parseDiagonalValue(val);
                     const isNull = (dVal.top === 'nul' || dVal.top === 'NUL') && (dVal.bottom === 'nul' || dVal.bottom === 'NUL');
                     return (
-                      <td key={sIdx} style={{ ...tableCellStyle, width: '9%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
+                      <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
                         <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '28px' }}>
                           <svg
                             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
@@ -1011,14 +1743,19 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
             if (row.isSpanSymbolTol) {
               return (
                 <tr key={`doc-row-${row.id}`}>
-                  <td style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.parameter}
                   </td>
                   <td colSpan="2" style={{ ...tableCellStyle, width: '27%', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.symbol}
                   </td>
+                  {isAssembly && (
+                    <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.sampleSize || ''}
+                    </td>
+                  )}
                   {row.samples.map((val, sIdx) => (
-                    <td key={sIdx} style={{ ...tableCellStyle, width: '9%', position: 'relative', boxSizing: 'border-box' }}>
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
                       {renderSampleValue(val)}
                     </td>
                   ))}
@@ -1030,15 +1767,20 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               return (
                 <tr key={`doc-row-${row.id}`}>
                   {row.isFirstInGroup && (
-                    <td rowSpan={row.groupRowSpan || 2} style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td rowSpan={row.groupRowSpan || 2} style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.parameter || '• Visual Inspection'}
                     </td>
                   )}
                   <td colSpan="2" style={{ ...tableCellStyle, width: '27%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.subParameter}
                   </td>
+                  {isAssembly && (
+                    <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.sampleSize || ''}
+                    </td>
+                  )}
                   {row.samples.map((val, sIdx) => (
-                    <td key={sIdx} style={{ ...tableCellStyle, width: '9%', position: 'relative', boxSizing: 'border-box' }}>
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
                       {renderSampleValue(val)}
                     </td>
                   ))}
@@ -1050,14 +1792,19 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               return (
                 <tr key={`doc-row-${row.id}`}>
                   {row.isFirstInGroup && (
-                    <td rowSpan="3" style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       • Track VKR (µm/s)
                     </td>
                   )}
-                  <td style={{ ...tableCellStyle, width: '14%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.subParameter}</td>
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.subParameter}</td>
                   <td style={{ ...tableCellStyle, width: '13%', position: 'relative', boxSizing: 'border-box' }}>{renderSampleValue(row.tol)}</td>
+                  {isAssembly && (
+                    <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.sampleSize || ''}
+                    </td>
+                  )}
                   {row.samples.map((val, sIdx) => (
-                    <td key={sIdx} style={{ ...tableCellStyle, width: '9%', position: 'relative', boxSizing: 'border-box' }}>
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
                       {renderSampleValue(val)}
                     </td>
                   ))}
@@ -1070,10 +1817,10 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                 <tr key={`doc-row-${row.id}`}>
                   {row.isFirstInGroup && (
                     <>
-                      <td rowSpan="3" style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                         {row.parameter || 'Track VKR (µm/s)'}
                       </td>
-                      <td rowSpan="3" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box', whiteSpace: 'pre-line', lineHeight: '1.4' }}>
+                      <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box', whiteSpace: 'pre-line', lineHeight: '1.4' }}>
                         {row.symbol || "L , M , H\nor\nW Parameters"}
                       </td>
                     </>
@@ -1081,8 +1828,13 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                   <td style={{ ...tableCellStyle, width: '13%', position: 'relative', boxSizing: 'border-box' }}>
                     {renderSampleValue(row.tol)}
                   </td>
+                  {isAssembly && (
+                    <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.sampleSize || ''}
+                    </td>
+                  )}
                   {row.samples.map((val, sIdx) => (
-                    <td key={sIdx} style={{ ...tableCellStyle, width: '9%', position: 'relative', boxSizing: 'border-box' }}>
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
                       {renderSampleValue(val)}
                     </td>
                   ))}
@@ -1092,11 +1844,16 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
 
             return (
               <tr key={`doc-row-${row.id}`}>
-                <td style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
-                <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
-                <td style={{ ...tableCellStyle, width: '13%', position: 'relative', boxSizing: 'border-box' }}>{renderSampleValue(row.tol)}</td>
+                <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', whiteSpace: 'pre-line', boxSizing: 'border-box' }}>{row.parameter}</td>
+                <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
+                <td style={{ ...tableCellStyle, width: '13%', position: 'relative', boxSizing: 'border-box', whiteSpace: 'pre-line', fontSize: row.isStackedTol ? '10px' : '11.5px', lineHeight: '1.2' }}>{renderSampleValue(row.tol)}</td>
+                {isAssembly && (
+                  <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    {row.sampleSize || ''}
+                  </td>
+                )}
                 {row.samples.map((val, sIdx) => (
-                  <td key={sIdx} style={{ ...tableCellStyle, width: '9%', position: 'relative', boxSizing: 'border-box' }}>
+                  <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
                     {renderSampleValue(val)}
                   </td>
                 ))}
@@ -1105,19 +1862,46 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
           })}
         </tbody>
       </table>
+      )}
 
-      <div style={{ border: '1px solid #000', borderTop: 'none', padding: '5px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}>
-        <b>Machine Released for Production :</b>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <b>YES / NO</b>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', color: formData.machineReleased === 'YES' ? 'green' : '#64748b' }}>
-            <SvgCheckbox checked={formData.machineReleased === 'YES'} color={formData.machineReleased === 'YES' ? 'green' : '#64748b'} /> YES
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', color: formData.machineReleased === 'NO' ? 'red' : '#64748b' }}>
-            <SvgCheckbox checked={formData.machineReleased === 'NO'} color={formData.machineReleased === 'NO' ? 'red' : '#64748b'} /> NO
+      {isAssembly && (
+        <div style={{ border: '1px solid #000', borderTop: 'none', padding: '4px 10px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '40px', fontSize: '11.5px', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <b style={{ fontSize: '12px' }}>OK</b>
+            <div style={{ width: '38px', height: '20px', border: '1.5px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CheckIcon size={14} color="#16a34a" strokeWidth={3} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <b style={{ fontSize: '12px' }}>NOT OK</b>
+            <div style={{ width: '38px', height: '20px', border: '1.5px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CrossIcon size={14} color="#dc2626" strokeWidth={3} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isQualityEquipments ? (
+        <div style={{ border: '1px solid #000', borderTop: 'none', padding: '5px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '15px', boxSizing: 'border-box' }}>
+          <b>Setup Approval :-</b>
+          <span style={{ fontWeight: 'bold', textDecoration: (formData.setupApproval === 'Approved' || formData.machineReleased === 'YES') ? 'underline' : 'none' }}>
+            {formData.setupApproval || (formData.machineReleased === 'YES' ? 'Approved' : (formData.machineReleased === 'NO' ? 'Not Approved' : 'Approved / Not Approved'))}
           </span>
         </div>
-      </div>
+      ) : (
+        <div style={{ border: '1px solid #000', borderTop: 'none', padding: '5px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+          <b>{isAssembly ? 'ASSEMBLY PROCESS RELEASED FOR PRODUCTION :' : 'Machine Released for Production :'}</b>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <b>YES / NO</b>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', color: formData.machineReleased === 'YES' ? 'green' : '#64748b' }}>
+              <SvgCheckbox checked={formData.machineReleased === 'YES'} color={formData.machineReleased === 'YES' ? 'green' : '#64748b'} /> YES
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', color: formData.machineReleased === 'NO' ? 'red' : '#64748b' }}>
+              <SvgCheckbox checked={formData.machineReleased === 'NO'} color={formData.machineReleased === 'NO' ? 'red' : '#64748b'} /> NO
+            </span>
+          </div>
+        </div>
+      )}
 
       <table style={{ width: "100%", borderCollapse: "collapse", borderTop: "none", fontSize: "11px", tableLayout: 'fixed' }} border="1">
         <tbody>
@@ -1136,7 +1920,7 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                   <tr style={{ height: "24px", textAlign: "center" }}>
                     <td style={{ width: "34%", padding: "3px", boxSizing: 'border-box' }}></td>
                     <td style={{ width: "33%", padding: "3px", fontWeight: "bold", boxSizing: 'border-box' }}>Inspector</td>
-                    <td style={{ width: "33%", padding: "3px", fontWeight: "bold", boxSizing: 'border-box' }}>Supervisor</td>
+                    <td style={{ width: "33%", padding: "3px", fontWeight: "bold", boxSizing: 'border-box' }}>{(isAssembly || isQualityEquipments) ? 'Setter / Supervisor' : 'Supervisor'}</td>
                   </tr>
                   <tr style={{ height: "26px", textAlign: "center" }}>
                     <td style={{ fontWeight: "bold", padding: "3px 5px", textAlign: "left", boxSizing: 'border-box' }}>Signature</td>
@@ -1168,12 +1952,13 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
 // ==========================================
 
 function ReasonAndAuthorizationSection({ formData, setFormData }) {
+  const isQE = isQualityEquipmentsForm(formData.formatNo, formData.operation);
   const reasons = [
     { id: 1, label: "1) Type Change" },
     { id: 2, label: "2) Major Breakdown" },
-    { id: 3, label: "3) Shut Down" },
+    { id: 3, label: isQE ? "3) Shift Change" : "3) Shut Down" },
     { id: 4, label: "4) Major Tooling Change" },
-    { id: 5, label: "5) Material Change" }
+    { id: 5, label: isQE ? "5) Man / Machine Change" : "5) Material Change" }
   ];
 
   const handleReasonClick = (id) => {
@@ -1624,6 +2409,19 @@ function DiagonalInputCell({
 function InspectionTemplate({ printRef, formData, setFormData, tableData, setTableData, onSubmit, onAttachmentChange, attachedPdfName }) {
   const [activeVisualCell, setActiveVisualCell] = useState(null); // { rIdx, sIdx }
   const popupRef = useRef(null);
+  const isQualityEquipments = isQualityEquipmentsForm(formData.formatNo, formData.operation);
+  const isAssembly = !isQualityEquipments && isAssemblyForm(formData.formatNo, formData.operation);
+  const isMarking = !isQualityEquipments && !isAssembly && isMarkingForm(formData.formatNo, formData.operation, formData.grinding);
+
+  const handleQeCellChange = (rowIndex, field, value) => {
+    const updatedTable = tableData.map((row, rIdx) => {
+      if (rIdx === rowIndex) {
+        return { ...row, [field]: value };
+      }
+      return row;
+    });
+    setTableData(updatedTable);
+  };
 
   const handleVisualSelect = (rIdx, sIdx, val) => {
     handleSampleChange(rIdx, sIdx, val);
@@ -1638,6 +2436,12 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
     };
     const handleKeyDown = (e) => {
       if (!activeVisualCell) return;
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          setActiveVisualCell(null);
+        }
+        return;
+      }
       if (e.key === 'Escape') {
         setActiveVisualCell(null);
       } else if (e.key === '1' || e.key.toLowerCase() === 't' || e.key.toLowerCase() === 'v') {
@@ -1695,6 +2499,33 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
     setTableData(updatedTable);
   };
 
+  const handleSampleSizeChange = (rowIndex, value) => {
+    const updatedTable = tableData.map((row, rIdx) => {
+      if (rIdx === rowIndex) {
+        return { ...row, sampleSize: value };
+      }
+      return row;
+    });
+    setTableData(updatedTable);
+  };
+
+  const handleVibrationChange = (rowIndex, sampleIndex, subKey, posKey, value) => {
+    const updatedTable = tableData.map((row, rIdx) => {
+      if (rIdx !== rowIndex) return row;
+      const nextSamples = [...(row.samples || [])];
+      const current = parseVibrationSample(nextSamples[sampleIndex]);
+      nextSamples[sampleIndex] = {
+        ...current,
+        [subKey]: {
+          ...current[subKey],
+          [posKey]: value
+        }
+      };
+      return { ...row, samples: nextSamples };
+    });
+    setTableData(updatedTable);
+  };
+
   const cellInputStyle = {
     width: '100%',
     height: '100%',
@@ -1712,6 +2543,232 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
     height: '32px',
     textAlign: 'center',
     verticalAlign: 'middle'
+  };
+
+  const renderMarkingSampleCell = (val, rIdx, sIdx) => {
+    const isCellActive = activeVisualCell?.rIdx === rIdx && activeVisualCell?.sIdx === sIdx;
+    const isTick = val === '✓' || val === 'tick' || val === 'TICK' || val === 'v' || val === 'V';
+    const isCross = val === '✗' || val === 'cross' || val === 'CROSS' || val === 'x' || val === 'X';
+    const isSlash = val === 'nul' || val === 'NUL' || val === 'slash' || val === 'SLASH' || val === '/' || val === 'null' || val === 'NULL';
+
+    const popupAlignStyle = sIdx >= 3
+      ? { right: 0, left: 'auto', transform: 'none' }
+      : sIdx <= 1
+        ? { left: 0, right: 'auto', transform: 'none' }
+        : { left: '50%', right: 'auto', transform: 'translateX(-50%)' };
+
+    return (
+      <td
+        key={`mk-cell-${sIdx}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveVisualCell(isCellActive ? null : { rIdx, sIdx });
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          handleVisualSelect(rIdx, sIdx, isSlash ? '' : 'nul');
+        }}
+        style={{
+          ...tableCellStyle,
+          width: '7%',
+          padding: 0,
+          position: 'relative',
+          cursor: 'pointer',
+          backgroundColor: isCellActive ? '#eff6ff' : 'transparent',
+          userSelect: 'none'
+        }}
+        title="Click to select: Check (✓), Cross (✗), or Diagonal Null (/)"
+      >
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            minHeight: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {isTick && <CheckIcon size={18} color="#16a34a" strokeWidth={3} />}
+          {isCross && <CrossIcon size={18} color="#dc2626" strokeWidth={3} />}
+          {isSlash && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none'
+              }}
+            >
+              <svg
+                style={{ width: '100%', height: '100%', display: 'block' }}
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+              >
+                <line
+                  x1="0"
+                  y1="100"
+                  x2="100"
+                  y2="0"
+                  stroke="#000"
+                  strokeWidth="1.6"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+            </div>
+          )}
+
+          {isCellActive && (
+            <div
+              ref={popupRef}
+              data-html2canvas-ignore="true"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 3px)',
+                ...popupAlignStyle,
+                zIndex: 9999,
+                backgroundColor: '#ffffff',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08)',
+                border: '1px solid #cbd5e1',
+                borderRadius: '8px',
+                padding: '6px',
+                width: '180px',
+                textAlign: 'left'
+              }}
+            >
+              <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#64748b', padding: '3px 8px 5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Select Option
+              </div>
+
+              {/* Option 1: Tick / Check */}
+              <button
+                type="button"
+                onClick={() => handleVisualSelect(rIdx, sIdx, '✓')}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 8px',
+                  border: isTick ? '1.5px solid #16a34a' : '1px solid #e2e8f0',
+                  borderRadius: '5px',
+                  backgroundColor: isTick ? '#ecfdf5' : '#ffffff',
+                  cursor: 'pointer',
+                  marginBottom: '4px',
+                  textAlign: 'left'
+                }}
+              >
+                <span style={{ width: '22px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <CheckIcon size={16} color="#16a34a" />
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#15803d' }}>Check (✓)</span>
+                  <span style={{ fontSize: '10px', color: '#64748b' }}>Conforming</span>
+                </div>
+              </button>
+
+              {/* Option 2: Cross */}
+              <button
+                type="button"
+                onClick={() => handleVisualSelect(rIdx, sIdx, '✗')}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 8px',
+                  border: isCross ? '1.5px solid #dc2626' : '1px solid #e2e8f0',
+                  borderRadius: '5px',
+                  backgroundColor: isCross ? '#fef2f2' : '#ffffff',
+                  cursor: 'pointer',
+                  marginBottom: '4px',
+                  textAlign: 'left'
+                }}
+              >
+                <span style={{ width: '22px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <CrossIcon size={16} color="#dc2626" />
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b91c1c' }}>Cross (✗)</span>
+                  <span style={{ fontSize: '10px', color: '#64748b' }}>Non-conforming</span>
+                </div>
+              </button>
+
+              {/* Option 3: Diagonal Null */}
+              <button
+                type="button"
+                onClick={() => handleVisualSelect(rIdx, sIdx, 'nul')}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 8px',
+                  border: isSlash ? '1.5px solid #000000' : '1px solid #e2e8f0',
+                  borderRadius: '5px',
+                  backgroundColor: isSlash ? '#f1f5f9' : '#ffffff',
+                  cursor: 'pointer',
+                  marginBottom: '4px',
+                  textAlign: 'left'
+                }}
+              >
+                <span
+                  style={{
+                    width: '22px',
+                    height: '18px',
+                    border: '1px solid #000',
+                    position: 'relative',
+                    display: 'inline-block',
+                    backgroundColor: '#fff'
+                  }}
+                >
+                  <svg
+                    style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+                    viewBox="0 0 20 20"
+                    preserveAspectRatio="none"
+                  >
+                    <line x1="0" y1="20" x2="20" y2="0" stroke="#000" strokeWidth="1.8" />
+                  </svg>
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000' }}>Diagonal Null</span>
+                  <span style={{ fontSize: '10px', color: '#64748b' }}>Nul / Not Applicable</span>
+                </div>
+              </button>
+
+              {/* Clear Option */}
+              {val && (
+                <button
+                  type="button"
+                  onClick={() => handleVisualSelect(rIdx, sIdx, '')}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '5px 8px',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '5px',
+                    backgroundColor: '#f8fafc',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span style={{ width: '22px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <BackspaceIcon size={13} color="#64748b" />
+                  </span>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b' }}>Clear</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </td>
+    );
   };
 
   const renderVisualSampleCell = (val, rIdx, sIdx) => {
@@ -1733,15 +2790,20 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
           e.stopPropagation();
           setActiveVisualCell(isCellActive ? null : { rIdx, sIdx });
         }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          handleVisualSelect(rIdx, sIdx, isSlash ? '' : 'nul');
+        }}
         style={{
           ...tableCellStyle,
+          width: isAssembly ? '8%' : '9%',
           padding: 0,
           position: 'relative',
           cursor: 'pointer',
           backgroundColor: isCellActive ? '#eff6ff' : 'transparent',
           userSelect: 'none'
         }}
-        title="Click to select: Tick, Cross, or Diagonal Slash (Nul)"
+        title="Click to select: Tick, Cross, Diagonal Slash (Nul), or enter reading (Right-click to toggle slash)"
       >
         <div
           style={{
@@ -1791,6 +2853,10 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
             </div>
           )}
 
+          {!isTick && !isCross && !isSlash && val && (
+            <span style={{ fontSize: '11.5px', fontWeight: 'bold' }}>{val}</span>
+          )}
+
           {isCellActive && (
             <div
               ref={popupRef}
@@ -1836,7 +2902,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                   <CheckIcon size={16} color="#16a34a" />
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#15803d' }}>Tick</span>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#15803d' }}>Tick (✓)</span>
                   <span style={{ fontSize: '10px', color: '#64748b' }}>Conforming</span>
                 </div>
               </button>
@@ -1863,7 +2929,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                   <CrossIcon size={16} color="#dc2626" />
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b91c1c' }}>Cross</span>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b91c1c' }}>Cross (✗)</span>
                   <span style={{ fontSize: '10px', color: '#64748b' }}>Non-conforming</span>
                 </div>
               </button>
@@ -1882,7 +2948,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                   borderRadius: '5px',
                   backgroundColor: isSlash ? '#f1f5f9' : '#ffffff',
                   cursor: 'pointer',
-                  marginBottom: (isTick || isCross || isSlash) ? '4px' : '0px',
+                  marginBottom: '4px',
                   textAlign: 'left'
                 }}
               >
@@ -1910,8 +2976,61 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                 </div>
               </button>
 
+              {/* Option 4: Custom Text/Number input */}
+              <div style={{ padding: '6px 2px 2px 2px', borderTop: '1px solid #e2e8f0', marginTop: '4px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#64748b', marginBottom: '4px' }}>
+                  Or enter reading:
+                </div>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <input
+                    type="text"
+                    value={(isTick || isCross || isSlash) ? '' : (val || '')}
+                    onChange={(e) => handleSampleChange(rIdx, sIdx, e.target.value)}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setActiveVisualCell(null);
+                      }
+                    }}
+                    placeholder="e.g. 408.5"
+                    style={{
+                      flex: 1,
+                      padding: '4px 6px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      border: '1px solid #005a9c',
+                      borderRadius: '4px',
+                      boxSizing: 'border-box',
+                      outline: 'none',
+                      color: '#000'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveVisualCell(null);
+                    }}
+                    style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#005a9c',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+
               {/* Clear Option */}
-              {(isTick || isCross || isSlash) && (
+              {(isTick || isCross || isSlash || val) && (
                 <button
                   type="button"
                   onClick={() => handleVisualSelect(rIdx, sIdx, '')}
@@ -1927,7 +3046,8 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     backgroundColor: 'transparent',
                     cursor: 'pointer',
                     color: '#64748b',
-                    textAlign: 'left'
+                    textAlign: 'left',
+                    marginTop: '2px'
                   }}
                 >
                   <span style={{ width: '22px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -1960,142 +3080,512 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                   ABU QA-HB
                 </div>
               </td>
-              <td rowSpan="4" style={{ textAlign: 'center', fontSize: '19px', fontWeight: 'bold', width: '46%', verticalAlign: 'middle', letterSpacing: '0.5px', boxSizing: 'border-box' }}>
-                FIRST OFF INSPECTION
+              <td rowSpan="4" style={{ textAlign: 'center', fontSize: isQualityEquipments ? '17px' : '19px', fontWeight: 'bold', width: '46%', verticalAlign: 'middle', letterSpacing: '0.5px', boxSizing: 'border-box' }}>
+                {isQualityEquipments ? 'FIRST OFF INSPECTION QUALITY EQUIPMENTS' : 'FIRST OFF INSPECTION'}
               </td>
               <td style={{ fontSize: '11px', padding: '4px 6px', width: '18%', fontWeight: 'bold', boxSizing: 'border-box' }}>Format No.:</td>
               <td style={{ fontSize: '11px', padding: '4px 6px', width: '14%', fontWeight: 'bold', wordBreak: 'break-all', boxSizing: 'border-box' }}>{formData.formatNo}</td>
             </tr>
             <tr>
               <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Revision No.:</td>
-              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
-                <input
-                  type="text"
-                  value={formData.revisionNo || ''}
-                  onChange={(e) => setFormData({ ...formData, revisionNo: e.target.value })}
-                  style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '3px', padding: '1px 4px', fontSize: '11px', fontWeight: 'bold' }}
-                />
-              </td>
+              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>1</td>
             </tr>
             <tr>
-              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Rev. Date:( YY/MM)</td>
-              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
-                <input
-                  type="text"
-                  value={formData.revDate || ''}
-                  onChange={(e) => setFormData({ ...formData, revDate: e.target.value })}
-                  style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '3px', padding: '1px 4px', fontSize: '11px', fontWeight: 'bold' }}
-                />
-              </td>
+              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Rev. Date:( YY/MM) :</td>
+              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>14/07</td>
             </tr>
             <tr>
               <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
-                Prep. By:{' '}
-                <input
-                  type="text"
-                  value={formData.prepBy || ''}
-                  onChange={(e) => setFormData({ ...formData, prepBy: e.target.value })}
-                  style={{ width: '55px', border: '1px solid #ccc', borderRadius: '3px', padding: '1px 3px', fontSize: '11px', fontWeight: 'bold' }}
-                />
+                Prep. By: AVS
               </td>
               <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
-                Appd By:{' '}
-                <input
-                  type="text"
-                  value={formData.appdBy || ''}
-                  onChange={(e) => setFormData({ ...formData, appdBy: e.target.value })}
-                  style={{ width: '55px', border: '1px solid #ccc', borderRadius: '3px', padding: '1px 3px', fontSize: '11px', fontWeight: 'bold' }}
-                />
+                Appd By: SS
               </td>
             </tr>
           </tbody>
         </table>
 
         {/* HEADER SECTION MATCHING EXACT LAYOUT */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
-          <tbody>
-            <tr>
-              <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span><b>GRINDING :</b> {formData.grinding}</span>
-                  <div>
-                    <b>T.V =</b>
+        {isQualityEquipments ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+            <tbody>
+              <tr>
+                <td style={{ width: '33.33%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>Type :-</b>
                     <input
                       type="text"
-                      value={formData.tv || ''}
-                      onChange={(e) => setFormData({ ...formData, tv: e.target.value })}
-                      style={{ marginLeft: '5px', width: '65px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px' }}
+                      value={formData.type || ''}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      placeholder="e.g. 33110"
+                      style={{ marginLeft: '6px', width: '120px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
                     />
                   </div>
-                </div>
-              </td>
-              <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
-                <b>DATE :</b> {formData.date}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span><b>CHANNEL NO. :</b> {formData.channelNo}</span>
-                  <div>
-                    <b>M.V =</b>
+                </td>
+                <td style={{ width: '33.33%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>Date :-</b>
                     <input
                       type="text"
-                      value={formData.mv || ''}
-                      onChange={(e) => setFormData({ ...formData, mv: e.target.value })}
-                      style={{ marginLeft: '5px', width: '60px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px' }}
+                      value={formData.date || ''}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, date: formatDateToDDMMYY(e.target.value) })}
+                      placeholder="dd/mm/yy"
+                      style={{ marginLeft: '6px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '95px', fontSize: '11px' }}
                     />
                   </div>
-                </div>
-              </td>
-              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                <b>SHIFT :</b> {formData.shift}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                <b>TYPE :</b>
-                <input
-                  type="text"
-                  value={formData.type || ''}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  placeholder="Enter Type"
-                  style={{ marginLeft: '5px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
-                />
-              </td>
-              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                <b>MACHINE NO. :</b>
-                <input
-                  type="text"
-                  value={formData.machineNo || ''}
-                  onChange={(e) => setFormData({ ...formData, machineNo: e.target.value })}
-                  placeholder=""
-                  style={{ marginLeft: '5px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '4px 8px', boxSizing: 'border-box' }}><b>OPERATION :</b> {formData.operation}</td>
-              <td style={{ padding: '4px 8px', boxSizing: 'border-box' }}></td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+                <td style={{ width: '33.33%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>Channel :-</b>
+                    <input
+                      type="text"
+                      value={formData.channelNo || ''}
+                      onChange={(e) => setFormData({ ...formData, channelNo: e.target.value })}
+                      placeholder="e.g. T-6"
+                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        ) : isAssembly ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+            <tbody>
+              <tr>
+                <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span><b>ASSEMBLY</b></span>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <b>Cone Height MV =</b>
+                      <input
+                        type="text"
+                        value={formData.coneHeightMV ?? formData.mv ?? ''}
+                        onChange={(e) => setFormData({ ...formData, coneHeightMV: e.target.value, mv: e.target.value })}
+                        placeholder="e.g. 40"
+                        style={{ marginLeft: '5px', width: '65px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                      />
+                    </div>
+                  </div>
+                </td>
+                <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>DATE :</b>
+                    <input
+                      type="text"
+                      value={formData.date || ''}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, date: formatDateToDDMMYY(e.target.value) })}
+                      placeholder="dd/mm/yy"
+                      style={{ marginLeft: '6px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '95px', fontSize: '11px' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>CHANNEL NO :</b>
+                    <input
+                      type="text"
+                      value={formData.channelNo || ''}
+                      onChange={(e) => setFormData({ ...formData, channelNo: e.target.value })}
+                      placeholder="e.g. T6"
+                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>SHIFT :</b>
+                    <input
+                      type="text"
+                      value={formData.shift || ''}
+                      onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
+                      placeholder="e.g. II"
+                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td colSpan="2" style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>TYPE :</b>
+                    <input
+                      type="text"
+                      value={formData.type || ''}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      placeholder="e.g. 32210"
+                      style={{ marginLeft: '6px', width: '160px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        ) : isMarking ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+            <tbody>
+              <tr>
+                <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span><b>GRINDING :</b></span>
+                    <input
+                      type="text"
+                      value={formData.grinding || ''}
+                      onChange={(e) => setFormData({ ...formData, grinding: e.target.value })}
+                      placeholder="OUTER RING / INNER RING"
+                      style={{ marginLeft: '6px', width: '220px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+                <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>DATE :</b>
+                    <input
+                      type="text"
+                      value={formData.date || ''}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, date: formatDateToDDMMYY(e.target.value) })}
+                      placeholder="dd/mm/yy"
+                      style={{ marginLeft: '6px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '95px', fontSize: '11px' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>CHANNEL NO. :</b>
+                    <input
+                      type="text"
+                      value={formData.channelNo || ''}
+                      onChange={(e) => setFormData({ ...formData, channelNo: e.target.value })}
+                      placeholder="e.g. T-6"
+                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>SHIFT :</b>
+                    <input
+                      type="text"
+                      value={formData.shift || ''}
+                      onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
+                      placeholder="e.g. I"
+                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>TYPE :</b>
+                    <input
+                      type="text"
+                      value={formData.type || ''}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      placeholder="e.g. 33110 (T6 14 2467)"
+                      style={{ marginLeft: '6px', width: '220px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>OPERATION :</b>
+                    <input
+                      type="text"
+                      value={formData.operation || 'MARKING'}
+                      onChange={(e) => setFormData({ ...formData, operation: e.target.value })}
+                      placeholder="MARKING"
+                      style={{ marginLeft: '6px', width: '160px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+            <tbody>
+              <tr>
+                <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span><b>GRINDING :</b> {formData.grinding}</span>
+                    <div>
+                      <b>T.V =</b>
+                      <input
+                        type="text"
+                        value={formData.tv || ''}
+                        onChange={(e) => setFormData({ ...formData, tv: e.target.value })}
+                        style={{ marginLeft: '5px', width: '65px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px' }}
+                      />
+                    </div>
+                  </div>
+                </td>
+                <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>DATE :</b>
+                    <input
+                      type="text"
+                      value={formData.date || ''}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, date: formatDateToDDMMYY(e.target.value) })}
+                      placeholder="dd/mm/yy"
+                      style={{ marginLeft: '6px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '95px', fontSize: '11px' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span><b>CHANNEL NO. :</b> {formData.channelNo}</span>
+                    <div>
+                      <b>M.V =</b>
+                      <input
+                        type="text"
+                        value={formData.mv || ''}
+                        onChange={(e) => setFormData({ ...formData, mv: e.target.value })}
+                        style={{ marginLeft: '5px', width: '60px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px' }}
+                      />
+                    </div>
+                  </div>
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <b>SHIFT :</b> {formData.shift}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <b>TYPE :</b>
+                  <input
+                    type="text"
+                    value={formData.type || ''}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    placeholder="Enter Type"
+                    style={{ marginLeft: '5px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                  />
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <b>MACHINE NO. :</b>
+                  <input
+                    type="text"
+                    value={formData.machineNo || ''}
+                    onChange={(e) => setFormData({ ...formData, machineNo: e.target.value })}
+                    placeholder=""
+                    style={{ marginLeft: '5px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '4px 8px', boxSizing: 'border-box' }}><b>OPERATION :</b> {formData.operation}</td>
+                <td style={{ padding: '4px 8px', boxSizing: 'border-box' }}></td>
+              </tr>
+            </tbody>
+          </table>
+        )}
 
         {/* Fully Grid-Based Editable Inspection Table */}
+        {isQualityEquipments ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
+            <thead>
+              <tr style={{ backgroundColor: '#f9fafb' }}>
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold' }}>Sr. No.</th>
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '20%', fontWeight: 'bold' }}>Equipment Name</th>
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '26%', fontWeight: 'bold' }}>Parameter Checked</th>
+                <th style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold', fontSize: '10.5px' }}>Outlier Master Available</th>
+                <th style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold', fontSize: '10.5px' }}>Verification with Outlier Master</th>
+                <th style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold', fontSize: '10.5px' }}>Release for Production</th>
+              </tr>
+              <tr style={{ backgroundColor: '#f9fafb' }}>
+                <th style={{ ...tableCellStyle, fontWeight: 'bold', fontSize: '10.5px' }}>Yes / No</th>
+                <th style={{ ...tableCellStyle, fontWeight: 'bold', fontSize: '10.5px' }}>Yes / No</th>
+                <th style={{ ...tableCellStyle, fontWeight: 'bold', fontSize: '10.5px' }}>Yes / No</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row, rIdx) => {
+                if (row.isSectionHeader) {
+                  return (
+                    <tr key={row.id || `qe-hdr-${rIdx}`}>
+                      <td colSpan="6" style={{ ...tableCellStyle, textAlign: 'left', padding: '4px 8px', fontWeight: 'bold', backgroundColor: '#f3f4f6' }}>
+                        {row.sectionTitle}
+                      </td>
+                    </tr>
+                  );
+                }
+                return (
+                  <tr key={row.id || `qe-row-${rIdx}`}>
+                    <td style={{ ...tableCellStyle, width: '9%' }}>
+                      <input
+                        type="text"
+                        value={row.srNo || ''}
+                        onChange={(e) => handleQeCellChange(rIdx, 'srNo', e.target.value)}
+                        style={{ ...cellInputStyle, fontSize: '11px' }}
+                      />
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '20%', padding: '0 4px' }}>
+                      <input
+                        type="text"
+                        value={row.equipmentName || ''}
+                        onChange={(e) => handleQeCellChange(rIdx, 'equipmentName', e.target.value)}
+                        style={{ ...cellInputStyle, fontWeight: 'bold', textAlign: 'left', fontSize: '11px' }}
+                      />
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '26%', padding: '0 4px' }}>
+                      <input
+                        type="text"
+                        value={row.parameterChecked || ''}
+                        onChange={(e) => handleQeCellChange(rIdx, 'parameterChecked', e.target.value)}
+                        style={{ ...cellInputStyle, textAlign: 'left', fontSize: '11px' }}
+                      />
+                    </td>
+                    {row.spanAcross ? (
+                      <td colSpan="3" style={{ ...tableCellStyle, padding: '0 4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            value={row.spanText || row.outlierAvailable || ''}
+                            onChange={(e) => {
+                              handleQeCellChange(rIdx, 'spanText', e.target.value);
+                              handleQeCellChange(rIdx, 'outlierAvailable', e.target.value);
+                            }}
+                            placeholder="e.g. 100% Checked by F.O.D"
+                            style={{ ...cellInputStyle, fontWeight: 'bold', fontSize: '11px' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleQeCellChange(rIdx, 'spanAcross', false)}
+                            style={{ fontSize: '9px', padding: '2px 4px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '3px', background: '#f8fafc', whiteSpace: 'nowrap' }}
+                            title="Split into 3 cells"
+                          >
+                            Split
+                          </button>
+                        </div>
+                      </td>
+                    ) : (
+                      <>
+                        <td style={{ ...tableCellStyle, width: '15%' }}>
+                          <input
+                            type="text"
+                            value={row.outlierAvailable || ''}
+                            onChange={(e) => handleQeCellChange(rIdx, 'outlierAvailable', e.target.value)}
+                            placeholder="Yes / No"
+                            style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                          />
+                        </td>
+                        <td style={{ ...tableCellStyle, width: '15%' }}>
+                          <input
+                            type="text"
+                            value={row.verificationOutlier || ''}
+                            onChange={(e) => handleQeCellChange(rIdx, 'verificationOutlier', e.target.value)}
+                            placeholder="Yes / No"
+                            style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                          />
+                        </td>
+                        <td style={{ ...tableCellStyle, width: '15%', position: 'relative' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                            <input
+                              type="text"
+                              value={row.releaseProduction || ''}
+                              onChange={(e) => handleQeCellChange(rIdx, 'releaseProduction', e.target.value)}
+                              placeholder="Yes / No"
+                              style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                            />
+                            {rIdx === 5 && (
+                              <button
+                                type="button"
+                                onClick={() => handleQeCellChange(rIdx, 'spanAcross', true)}
+                                style={{ fontSize: '8.5px', padding: '1px 3px', cursor: 'pointer', border: '1px solid #94a3b8', borderRadius: '2px', background: '#e2e8f0', marginRight: '2px', whiteSpace: 'nowrap' }}
+                                title="Span text across 3 columns"
+                              >
+                                Span
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : isMarking ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11.5px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
+            <thead>
+              <tr style={{ backgroundColor: '#f9fafb' }}>
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '28%', fontWeight: 'bold', padding: '4px' }}>PARAMETER</th>
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '37%', fontWeight: 'bold', padding: '4px' }}>CRITERIA</th>
+                <th colSpan="5" style={{ ...tableCellStyle, width: '35%', fontWeight: 'bold', padding: '4px 0' }}>SAMPLE NO.</th>
+              </tr>
+              <tr style={{ backgroundColor: '#f9fafb' }}>
+                <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>1</th>
+                <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>2</th>
+                <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>3</th>
+                <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>4</th>
+                <th style={{ ...tableCellStyle, width: '7%', fontWeight: 'bold' }}>5</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row, rIdx) => {
+                return (
+                  <tr key={row.id || `mk-row-${rIdx}`}>
+                    {rIdx === 0 && (
+                      <td rowSpan={tableData.length} style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '6px 10px', fontWeight: 'bold', verticalAlign: 'middle', backgroundColor: '#fcfcfc' }}>
+                        <input
+                          type="text"
+                          value={row.parameter || '• Visual Inspection'}
+                          onChange={(e) => {
+                            const updated = [...tableData];
+                            updated[0] = { ...updated[0], parameter: e.target.value };
+                            setTableData(updated);
+                          }}
+                          style={{ ...cellInputStyle, fontWeight: 'bold', textAlign: 'left' }}
+                        />
+                      </td>
+                    )}
+                    <td style={{ ...tableCellStyle, width: '37%', textAlign: 'left', padding: '4px 8px', fontWeight: 'bold' }}>
+                      <input
+                        type="text"
+                        value={row.criteria || row.subParameter || ''}
+                        onChange={(e) => {
+                          const updated = [...tableData];
+                          updated[rIdx] = { ...updated[rIdx], criteria: e.target.value, subParameter: e.target.value };
+                          setTableData(updated);
+                        }}
+                        style={{ ...cellInputStyle, fontWeight: 'bold', textAlign: 'left' }}
+                      />
+                    </td>
+                    {(row.samples || ['', '', '', '', '']).map((sVal, sIdx) => renderMarkingSampleCell(sVal, rIdx, sIdx))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11.5px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
           <thead>
             <tr style={{ backgroundColor: '#f9fafb' }}>
-              <th rowSpan="2" style={{ ...tableCellStyle, width: '28%', fontWeight: 'bold', padding: '4px', boxSizing: 'border-box' }}>PARAMETER</th>
-              <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>SYMBOL</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', fontWeight: 'bold', padding: '4px', boxSizing: 'border-box' }}>PARAMETER</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>SYMBOL</th>
               <th rowSpan="2" style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold', fontSize: '11.5px', boxSizing: 'border-box' }}>TOL (µm)</th>
-              <th colSpan="5" style={{ ...tableCellStyle, width: '45%', fontWeight: 'bold', fontSize: '11.5px', padding: '4px 0', boxSizing: 'border-box' }}>SAMPLE NO.</th>
+              {isAssembly && (
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', fontSize: '11px', boxSizing: 'border-box' }}>SAMPLE SIZE</th>
+              )}
+              <th colSpan="5" style={{ ...tableCellStyle, width: isAssembly ? '40%' : '45%', fontWeight: 'bold', fontSize: '11.5px', padding: '4px 0', boxSizing: 'border-box' }}>{isAssembly ? 'READINGS' : 'SAMPLE NO.'}</th>
             </tr>
             <tr style={{ backgroundColor: '#f9fafb' }}>
-              <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>1</th>
-              <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>2</th>
-              <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>3</th>
-              <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>4</th>
-              <th style={{ ...tableCellStyle, width: '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>5</th>
+              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>1</th>
+              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>2</th>
+              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>3</th>
+              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>4</th>
+              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>5</th>
             </tr>
           </thead>
           <tbody>
@@ -2106,8 +3596,8 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                 return (
                   <React.Fragment key={`double-row-${row.id}`}>
                     <tr>
-                      <td rowSpan="2" style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
-                      <td rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
+                      <td rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
+                      <td rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
                       <ValueOrNullCell
                         value={row.tol}
                         onChange={(newVal) => handleTolChange(rIdx, newVal)}
@@ -2115,12 +3605,22 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                         inputStyle={cellInputStyle}
                         tdProps={{ rowSpan: 2 }}
                       />
+                      {isAssembly && (
+                        <td rowSpan="2" style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                          <input
+                            type="text"
+                            value={row.sampleSize || ''}
+                            onChange={(e) => handleSampleSizeChange(rIdx, e.target.value)}
+                            style={{ width: '100%', border: 'none', textAlign: 'center', fontSize: '11.5px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent' }}
+                          />
+                        </td>
+                      )}
                       {r1.map((val, sIdx) => (
                         <ValueOrNullCell
                           key={`r1-${sIdx}`}
                           value={val}
                           onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal, 1)}
-                          style={tableCellStyle}
+                          style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
                           inputStyle={cellInputStyle}
                         />
                       ))}
@@ -2131,7 +3631,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                           key={`r2-${sIdx}`}
                           value={val}
                           onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal, 2)}
-                          style={tableCellStyle}
+                          style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
                           inputStyle={cellInputStyle}
                         />
                       ))}
@@ -2140,26 +3640,163 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                 );
               }
 
-              if (row.isDiagonal || row.isDiagonalSplit) {
+              if (row.isVibrationRow) {
                 return (
                   <tr key={row.id}>
-                    <td style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.parameter}
                     </td>
-                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.symbol}
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '13%', padding: 0, boxSizing: 'border-box' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', minHeight: '34px' }}>
+                        <input
+                          type="text"
+                          value={parseDiagonalValue(row.tol).top}
+                          onChange={(e) => handleTolChange(rIdx, { top: e.target.value, bottom: parseDiagonalValue(row.tol).bottom })}
+                          placeholder="up"
+                          title="TOL Top"
+                          style={{ width: '100%', height: '50%', border: 'none', borderBottom: '1px solid #ccc', textAlign: 'center', fontSize: '11px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent', padding: 0 }}
+                        />
+                        <input
+                          type="text"
+                          value={parseDiagonalValue(row.tol).bottom}
+                          onChange={(e) => handleTolChange(rIdx, { top: parseDiagonalValue(row.tol).top, bottom: e.target.value })}
+                          placeholder="dn"
+                          title="TOL Down"
+                          style={{ width: '100%', height: '50%', border: 'none', textAlign: 'center', fontSize: '11px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent', padding: 0 }}
+                        />
+                      </div>
+                    </td>
+                    {isAssembly && (
+                      <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.sampleSize || ''}
+                          onChange={(e) => handleSampleSizeChange(rIdx, e.target.value)}
+                          style={{ width: '100%', border: 'none', textAlign: 'center', fontSize: '11.5px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent' }}
+                        />
+                      </td>
+                    )}
+                    {(row.samples || []).map((val, sIdx) => {
+                      const vib = parseVibrationSample(val);
+                      return (
+                        <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', padding: 0, height: '36px', boxSizing: 'border-box' }}>
+                          <div style={{ display: 'flex', width: '100%', height: '100%' }}>
+                            {/* Sub 1 */}
+                            <div style={{ width: '50%', borderRight: '1px solid #000', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                              <input
+                                type="text"
+                                value={vib.sub1.top}
+                                onChange={(e) => handleVibrationChange(rIdx, sIdx, 'sub1', 'top', e.target.value)}
+                                placeholder="up"
+                                title={`Sample ${sIdx + 1} Sub-A Up`}
+                                style={{ width: '100%', height: '50%', border: 'none', borderBottom: '1px solid #ccc', textAlign: 'center', fontSize: '10px', fontWeight: 'bold', padding: 0, outline: 'none', backgroundColor: 'transparent' }}
+                              />
+                              <input
+                                type="text"
+                                value={vib.sub1.bottom}
+                                onChange={(e) => handleVibrationChange(rIdx, sIdx, 'sub1', 'bottom', e.target.value)}
+                                placeholder="dn"
+                                title={`Sample ${sIdx + 1} Sub-A Down`}
+                                style={{ width: '100%', height: '50%', border: 'none', textAlign: 'center', fontSize: '10px', fontWeight: 'bold', padding: 0, outline: 'none', backgroundColor: 'transparent' }}
+                              />
+                            </div>
+                            {/* Sub 2 */}
+                            <div style={{ width: '50%', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                              <input
+                                type="text"
+                                value={vib.sub2.top}
+                                onChange={(e) => handleVibrationChange(rIdx, sIdx, 'sub2', 'top', e.target.value)}
+                                placeholder="up"
+                                title={`Sample ${sIdx + 1} Sub-B Up`}
+                                style={{ width: '100%', height: '50%', border: 'none', borderBottom: '1px solid #ccc', textAlign: 'center', fontSize: '10px', fontWeight: 'bold', padding: 0, outline: 'none', backgroundColor: 'transparent' }}
+                              />
+                              <input
+                                type="text"
+                                value={vib.sub2.bottom}
+                                onChange={(e) => handleVibrationChange(rIdx, sIdx, 'sub2', 'bottom', e.target.value)}
+                                placeholder="dn"
+                                title={`Sample ${sIdx + 1} Sub-B Down`}
+                                style={{ width: '100%', height: '50%', border: 'none', textAlign: 'center', fontSize: '10px', fontWeight: 'bold', padding: 0, outline: 'none', backgroundColor: 'transparent' }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              }
+
+              if (row.isDiagonalTol) {
+                return (
+                  <tr key={row.id}>
+                    <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.parameter}
+                    </td>
+                    <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.symbol}
                     </td>
                     <DiagonalInputCell
                       value={row.tol}
                       onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                      style={tableCellStyle}
+                      style={{ ...tableCellStyle, width: '13%' }}
                     />
+                    {isAssembly && (
+                      <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.sampleSize || ''}
+                          onChange={(e) => handleSampleSizeChange(rIdx, e.target.value)}
+                          style={{ width: '100%', border: 'none', textAlign: 'center', fontSize: '11.5px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent' }}
+                        />
+                      </td>
+                    )}
+                    {(row.samples || []).map((val, sIdx) => (
+                      <ValueOrNullCell
+                        key={sIdx}
+                        value={val}
+                        onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
+                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
+                        inputStyle={cellInputStyle}
+                      />
+                    ))}
+                  </tr>
+                );
+              }
+
+              if (row.isDiagonal || row.isDiagonalSplit) {
+                return (
+                  <tr key={row.id}>
+                    <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.parameter}
+                    </td>
+                    <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      {row.symbol}
+                    </td>
+                    <DiagonalInputCell
+                      value={row.tol}
+                      onChange={(newVal) => handleTolChange(rIdx, newVal)}
+                      style={{ ...tableCellStyle, width: '13%' }}
+                    />
+                    {isAssembly && (
+                      <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.sampleSize || ''}
+                          onChange={(e) => handleSampleSizeChange(rIdx, e.target.value)}
+                          style={{ width: '100%', border: 'none', textAlign: 'center', fontSize: '11.5px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent' }}
+                        />
+                      </td>
+                    )}
                     {(row.samples || []).map((val, sIdx) => (
                       <DiagonalInputCell
                         key={sIdx}
                         value={val}
                         onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                        style={tableCellStyle}
+                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
                       />
                     ))}
                   </tr>
@@ -2169,18 +3806,28 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
               if (row.isSpanSymbolTol) {
                 return (
                   <tr key={row.id}>
-                    <td style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.parameter}
                     </td>
                     <td colSpan="2" style={{ ...tableCellStyle, width: '27%', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.symbol}
                     </td>
+                    {isAssembly && (
+                      <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.sampleSize || ''}
+                          onChange={(e) => handleSampleSizeChange(rIdx, e.target.value)}
+                          style={{ width: '100%', border: 'none', textAlign: 'center', fontSize: '11.5px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent' }}
+                        />
+                      </td>
+                    )}
                     {row.samples.map((val, sIdx) => (
                       <ValueOrNullCell
                         key={sIdx}
                         value={val}
                         onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                        style={tableCellStyle}
+                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
                         inputStyle={cellInputStyle}
                       />
                     ))}
@@ -2192,13 +3839,23 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                 return (
                   <tr key={row.id}>
                     {row.isFirstInGroup && (
-                      <td rowSpan={row.groupRowSpan || 2} style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      <td rowSpan={row.groupRowSpan || 2} style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                         {row.parameter || '• Visual Inspection'}
                       </td>
                     )}
                     <td colSpan="2" style={{ ...tableCellStyle, width: '27%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.subParameter}
                     </td>
+                    {isAssembly && (
+                      <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.sampleSize || ''}
+                          onChange={(e) => handleSampleSizeChange(rIdx, e.target.value)}
+                          style={{ width: '100%', border: 'none', textAlign: 'center', fontSize: '11.5px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent' }}
+                        />
+                      </td>
+                    )}
                     {row.samples.map((val, sIdx) => renderVisualSampleCell(val, rIdx, sIdx))}
                   </tr>
                 );
@@ -2208,23 +3865,33 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                 return (
                   <tr key={row.id}>
                     {row.isFirstInGroup && (
-                      <td rowSpan="3" style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                         • Track VKR (µm/s)
                       </td>
                     )}
-                    <td style={{ ...tableCellStyle, width: '14%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.subParameter}</td>
+                    <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.subParameter}</td>
                     <ValueOrNullCell
                       value={row.tol}
                       onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                      style={tableCellStyle}
+                      style={{ ...tableCellStyle, width: '13%' }}
                       inputStyle={cellInputStyle}
                     />
+                    {isAssembly && (
+                      <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.sampleSize || ''}
+                          onChange={(e) => handleSampleSizeChange(rIdx, e.target.value)}
+                          style={{ width: '100%', border: 'none', textAlign: 'center', fontSize: '11.5px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent' }}
+                        />
+                      </td>
+                    )}
                     {row.samples.map((val, sIdx) => (
                       <ValueOrNullCell
                         key={sIdx}
                         value={val}
                         onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                        style={tableCellStyle}
+                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
                         inputStyle={cellInputStyle}
                       />
                     ))}
@@ -2237,10 +3904,10 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                   <tr key={row.id}>
                     {row.isFirstInGroup && (
                       <>
-                        <td rowSpan="3" style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                           {row.parameter || 'Track VKR (µm/s)'}
                         </td>
-                        <td rowSpan="3" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box', whiteSpace: 'pre-line', lineHeight: '1.4' }}>
+                        <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box', whiteSpace: 'pre-line', lineHeight: '1.4' }}>
                           {row.symbol || "L , M , H\nor\nW Parameters"}
                         </td>
                       </>
@@ -2248,15 +3915,25 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     <ValueOrNullCell
                       value={row.tol}
                       onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                      style={tableCellStyle}
+                      style={{ ...tableCellStyle, width: '13%' }}
                       inputStyle={cellInputStyle}
                     />
+                    {isAssembly && (
+                      <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.sampleSize || ''}
+                          onChange={(e) => handleSampleSizeChange(rIdx, e.target.value)}
+                          style={{ width: '100%', border: 'none', textAlign: 'center', fontSize: '11.5px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent' }}
+                        />
+                      </td>
+                    )}
                     {row.samples.map((val, sIdx) => (
                       <ValueOrNullCell
                         key={sIdx}
                         value={val}
                         onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                        style={tableCellStyle}
+                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
                         inputStyle={cellInputStyle}
                       />
                     ))}
@@ -2268,14 +3945,35 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
 
               return (
                 <tr key={row.id}>
-                  <td style={{ ...tableCellStyle, width: '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
-                  <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
-                  <ValueOrNullCell
-                    value={row.tol}
-                    onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                    style={tableCellStyle}
-                    inputStyle={cellInputStyle}
-                  />
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', whiteSpace: 'pre-line', boxSizing: 'border-box' }}>{row.parameter}</td>
+                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
+                  {row.isStackedTol ? (
+                    <td style={{ ...tableCellStyle, width: '13%', padding: 0, boxSizing: 'border-box' }}>
+                      <textarea
+                        value={row.tol || ''}
+                        onChange={(e) => handleTolChange(rIdx, e.target.value)}
+                        placeholder="Tol"
+                        style={{ width: '100%', height: '100%', minHeight: '32px', border: 'none', resize: 'none', textAlign: 'center', fontSize: '10px', fontWeight: 'bold', outline: 'none', padding: '2px 0', backgroundColor: 'transparent', boxSizing: 'border-box' }}
+                      />
+                    </td>
+                  ) : (
+                    <ValueOrNullCell
+                      value={row.tol}
+                      onChange={(newVal) => handleTolChange(rIdx, newVal)}
+                      style={{ ...tableCellStyle, width: '13%' }}
+                      inputStyle={cellInputStyle}
+                    />
+                  )}
+                  {isAssembly && (
+                    <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      <input
+                        type="text"
+                        value={row.sampleSize || ''}
+                        onChange={(e) => handleSampleSizeChange(rIdx, e.target.value)}
+                        style={{ width: '100%', border: 'none', textAlign: 'center', fontSize: '11.5px', fontWeight: 'bold', outline: 'none', backgroundColor: 'transparent' }}
+                      />
+                    </td>
+                  )}
                   {row.samples.map((val, sIdx) =>
                     isVisualCheck
                       ? renderVisualSampleCell(val, rIdx, sIdx)
@@ -2284,7 +3982,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                           key={sIdx}
                           value={val}
                           onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                          style={tableCellStyle}
+                          style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
                           inputStyle={cellInputStyle}
                         />
                       )
@@ -2294,19 +3992,65 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
             })}
           </tbody>
         </table>
+        )}
 
-        <div style={{ border: '1px solid #000', borderTop: 'none', padding: '6px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <b>Machine Released for Production :</b>
-          <div>
-            <b style={{ marginRight: '10px' }}>YES / NO</b>
-            <label style={{ marginRight: '15px', fontWeight: 'bold', color: 'green', cursor: 'pointer' }}>
-              <input type="radio" name="released" value="YES" checked={formData.machineReleased === 'YES'} onChange={(e) => setFormData({ ...formData, machineReleased: e.target.value })} /> YES
-            </label>
-            <label style={{ fontWeight: 'bold', color: 'red', cursor: 'pointer' }}>
-              <input type="radio" name="released" value="NO" checked={formData.machineReleased === 'NO'} onChange={(e) => setFormData({ ...formData, machineReleased: e.target.value })} /> NO
-            </label>
+        {isAssembly && (
+          <div style={{ border: '1px solid #000', borderTop: 'none', padding: '6px 12px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '40px', fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <b style={{ fontSize: '13px' }}>OK</b>
+              <div style={{ width: '42px', height: '22px', border: '1.5px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckIcon size={16} color="#16a34a" strokeWidth={3} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <b style={{ fontSize: '13px' }}>NOT OK</b>
+              <div style={{ width: '42px', height: '22px', border: '1.5px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CrossIcon size={16} color="#dc2626" strokeWidth={3} />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {isQualityEquipments ? (
+          <div style={{ border: '1px solid #000', borderTop: 'none', padding: '6px 10px', fontSize: '11.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <b>Setup Approval :-</b>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', color: 'green', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="setupApproval"
+                  value="Approved"
+                  checked={formData.setupApproval === 'Approved' || formData.machineReleased === 'YES'}
+                  onChange={() => setFormData({ ...formData, setupApproval: 'Approved', machineReleased: 'YES' })}
+                />
+                Approved
+              </label>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', color: 'red', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="setupApproval"
+                  value="Not Approved"
+                  checked={formData.setupApproval === 'Not Approved' || formData.machineReleased === 'NO'}
+                  onChange={() => setFormData({ ...formData, setupApproval: 'Not Approved', machineReleased: 'NO' })}
+                />
+                Not Approved
+              </label>
+            </div>
+          </div>
+        ) : (
+          <div style={{ border: '1px solid #000', borderTop: 'none', padding: '6px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <b>{isAssembly ? 'ASSEMBLY PROCESS RELEASED FOR PRODUCTION :' : 'Machine Released for Production :'}</b>
+            <div>
+              <b style={{ marginRight: '10px' }}>YES / NO</b>
+              <label style={{ marginRight: '15px', fontWeight: 'bold', color: 'green', cursor: 'pointer' }}>
+                <input type="radio" name="released" value="YES" checked={formData.machineReleased === 'YES'} onChange={(e) => setFormData({ ...formData, machineReleased: e.target.value })} /> YES
+              </label>
+              <label style={{ fontWeight: 'bold', color: 'red', cursor: 'pointer' }}>
+                <input type="radio" name="released" value="NO" checked={formData.machineReleased === 'NO'} onChange={(e) => setFormData({ ...formData, machineReleased: e.target.value })} /> NO
+              </label>
+            </div>
+          </div>
+        )}
 
         <ReasonAndAuthorizationSection formData={formData} setFormData={setFormData} />
       </div>
@@ -2321,19 +4065,22 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
 function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSaved, showAppAlert, attachedPdf, onClearAttachedPdf }) {
   const printRef = useRef();
 
+  const initialRing = getRingSectionFromFormKey(selectedFormKey, filters?.ringSection || '');
+  const initialMeta = selectedFormKey && FORM_METADATA[selectedFormKey];
+
   const [formData, setFormData] = useState({
-    formatNo: (selectedFormKey && FORM_METADATA[selectedFormKey]) ? FORM_METADATA[selectedFormKey].formatNo : '',
-    revisionNo: '',
-    revDate: '',
-    prepBy: '',
-    appdBy: '',
-    grinding: filters.ringSection || '',
+    formatNo: initialMeta ? initialMeta.formatNo : '',
+    revisionNo: '1',
+    revDate: '14/07',
+    prepBy: 'AVS',
+    appdBy: 'SS',
+    grinding: initialRing,
     channelNo: filters.channel || '',
     tv: '',
     mv: '',
     type: '',
-    operation: (selectedFormKey && FORM_METADATA[selectedFormKey]) ? FORM_METADATA[selectedFormKey].operation : '',
-    date: filters.date || '',
+    operation: initialMeta ? initialMeta.operation : '',
+    date: formatDateToDDMMYY(filters.date) || '',
     shift: filters.shift || '',
     machineNo: filters.machine || '',
     machineReleased: '',
@@ -2344,22 +4091,19 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
     reasonSelected: null
   });
 
-  const [tableData, setTableData] = useState(() => getTableDataForForm(selectedFormKey, '', filters.ringSection));
+  const [tableData, setTableData] = useState(() => getTableDataForForm(selectedFormKey, initialMeta?.operation || '', initialRing));
 
   useEffect(() => {
     const meta = FORM_METADATA[selectedFormKey];
+    const computedRing = getRingSectionFromFormKey(selectedFormKey, filters.ringSection || '');
     if (meta) {
-      const isOuter = selectedFormKey.includes('06') || selectedFormKey.includes('07');
-      const isInner = selectedFormKey.includes('02') || selectedFormKey.includes('03') || selectedFormKey.includes('04') || selectedFormKey.includes('05');
-      const autoRing = isOuter ? 'Outer Ring' : (isInner ? 'INNER RING' : '');
-      const activeRing = filters.ringSection || autoRing;
       setFormData((prev) => ({
         ...prev,
         formatNo: meta.formatNo,
         operation: meta.operation,
-        grinding: activeRing || prev.grinding
+        grinding: computedRing || prev.grinding
       }));
-      setTableData(getTableDataForForm(selectedFormKey, meta.operation, activeRing));
+      setTableData(getTableDataForForm(selectedFormKey, meta.operation, computedRing));
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -2371,16 +4115,18 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
   }, [selectedFormKey]);
 
   useEffect(() => {
+    const computedRing = getRingSectionFromFormKey(selectedFormKey, filters.ringSection || '');
     setFormData((prev) => ({
       ...prev,
-      date: filters.date,
+      date: filters.date ? formatDateToDDMMYY(filters.date) : prev.date,
       channelNo: filters.channel,
-      grinding: filters.ringSection || prev.grinding,
+      grinding: computedRing || prev.grinding,
       machineNo: filters.machine,
       shift: filters.shift
     }));
-    if (filters.ringSection) {
-      setTableData(getTableDataForForm(selectedFormKey, '', filters.ringSection));
+    if (computedRing || filters.ringSection) {
+      const meta = FORM_METADATA[selectedFormKey];
+      setTableData(getTableDataForForm(selectedFormKey, meta?.operation || '', computedRing || filters.ringSection));
     }
   }, [filters]);
 
@@ -2396,15 +4142,22 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       }
     }
 
+    const finalFormattedDate = formatDateToDDMMYY(formData.date);
+
     const recFormData = {
       ...formData,
+      revisionNo: '1',
+      revDate: '14/07',
+      prepBy: 'AVS',
+      appdBy: 'SS',
+      date: finalFormattedDate,
       attachmentUrl: cloudAttachmentUrl || attachedPdf?.url || null,
       attachmentName: attachedPdf?.name || null
     };
 
     const newRec = {
       id: newRecId,
-      date: formData.date,
+      date: finalFormattedDate,
       section: filters.section || '',
       channel: formData.channelNo,
       ringSection: formData.grinding,
@@ -2476,6 +4229,8 @@ export default function SKFQualityApp() {
   const [selectedForm, setSelectedForm] = useState('');
 
   const [filterInputs, setFilterInputs] = useState({
+    recordId: '',
+    operation: '',
     date: '',
     section: '',
     channel: '',
@@ -2485,6 +4240,8 @@ export default function SKFQualityApp() {
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
+    recordId: '',
+    operation: '',
     date: '',
     section: '',
     channel: '',
@@ -2549,6 +4306,8 @@ export default function SKFQualityApp() {
 
   const handleClearFilters = () => {
     setFilterInputs({
+      recordId: '',
+      operation: '',
       date: '',
       section: '',
       channel: '',
@@ -2557,6 +4316,8 @@ export default function SKFQualityApp() {
       shift: ''
     });
     setAppliedFilters({
+      recordId: '',
+      operation: '',
       date: '',
       section: '',
       channel: '',
@@ -2756,12 +4517,18 @@ export default function SKFQualityApp() {
   };
 
   const filteredRecords = records.filter((rec) => {
+    const formattedRecDate = formatDateToDDMMYY(rec.date);
+    const formattedFilterDate = formatDateToDDMMYY(appliedFilters.date);
+    const dateMatches = !appliedFilters.date || (formattedRecDate === formattedFilterDate) || (rec.date === appliedFilters.date);
+
     return (
-      (!appliedFilters.date || rec.date === appliedFilters.date) &&
+      dateMatches &&
+      (!appliedFilters.recordId || (rec.id || '').toLowerCase().includes(appliedFilters.recordId.trim().toLowerCase())) &&
+      (!appliedFilters.operation || (rec.operation || '').toLowerCase().includes(appliedFilters.operation.trim().toLowerCase())) &&
       (!appliedFilters.section || rec.section === appliedFilters.section) &&
-      (!appliedFilters.channel || rec.channel.toLowerCase().includes(appliedFilters.channel.toLowerCase())) &&
-      (!appliedFilters.ringSection || rec.ringSection === appliedFilters.ringSection) &&
-      (!appliedFilters.machine || rec.machine.toLowerCase().includes(appliedFilters.machine.toLowerCase())) &&
+      (!appliedFilters.channel || (rec.channel || '').toLowerCase().includes(appliedFilters.channel.toLowerCase())) &&
+      (!appliedFilters.ringSection || (rec.ringSection || '').toLowerCase() === appliedFilters.ringSection.toLowerCase()) &&
+      (!appliedFilters.machine || (rec.machine || '').toLowerCase().includes(appliedFilters.machine.toLowerCase())) &&
       (!appliedFilters.shift || rec.shift === appliedFilters.shift)
     );
   });
@@ -2787,40 +4554,113 @@ export default function SKFQualityApp() {
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '15px', backgroundColor: '#f4f6f8', minHeight: '100vh' }}>
       {/* Header Bar */}
-      <div style={{ backgroundColor: '#002b49', color: '#fff', padding: '15px 20px', borderRadius: '8px', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '22px' }}>SKF Quality Assurance Portal</h2>
-            <span style={{ fontSize: '12px', opacity: 0.8 }}>First Off Inspection Management System</span>
+      <div style={{ backgroundColor: '#002b49', color: '#fff', padding: '14px 22px', borderRadius: '8px', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', position: 'relative', boxShadow: '0 2px 10px rgba(0, 43, 73, 0.22)' }}>
+        {/* Left: Bigger SKF Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', minWidth: '160px' }}>
+          <div style={{ backgroundColor: '#ffffff', padding: '6px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.18)' }}>
+            <img
+              src={skfLogo}
+              alt="SKF Logo"
+              style={{ height: '46px', width: 'auto', display: 'block', objectFit: 'contain' }}
+            />
           </div>
         </div>
-        <div>
+
+        {/* Center: Portal Title & Subtitle */}
+        <div style={{ flex: 1, textAlign: 'center', minWidth: '280px', padding: '0 10px' }}>
+          <h2 style={{ margin: 0, fontSize: '23px', fontWeight: 'bold', letterSpacing: '0.4px', color: '#ffffff', lineHeight: 1.25 }}>
+            SKF Quality Assurance Portal
+          </h2>
+          <span style={{ fontSize: '13px', opacity: 0.9, display: 'block', marginTop: '4px', color: '#cbd5e1', letterSpacing: '0.2px' }}>
+            First Off Inspection Management System
+          </span>
+        </div>
+
+        {/* Right: Navigation Buttons */}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'flex-end', minWidth: '160px' }}>
           <button
+            type="button"
             onClick={() => setActiveTab('entry')}
-            style={{ padding: '8px 16px', marginRight: '10px', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: activeTab === 'entry' ? '#005a9c' : '#ffffff', color: activeTab === 'entry' ? '#fff' : '#002b49' }}
+            style={{
+              padding: '9px 20px',
+              fontWeight: 'bold',
+              fontSize: '13.5px',
+              border: activeTab === 'entry' ? '1.5px solid #38bdf8' : '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'entry' ? '#005a9c' : 'rgba(255,255,255,0.1)',
+              color: '#ffffff',
+              boxShadow: activeTab === 'entry' ? '0 2px 6px rgba(0,0,0,0.25)' : 'none',
+              transition: 'all 0.2s ease',
+              display: 'inline-flex',
+              alignItems: 'center'
+            }}
           >
             Data Entry
           </button>
           <button
+            type="button"
             onClick={handleViewReportsClick}
-            style={{ padding: '8px 16px', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: activeTab === 'report' ? '#005a9c' : '#ffffff', color: activeTab === 'report' ? '#fff' : '#002b49' }}
+            style={{
+              padding: '9px 20px',
+              fontWeight: 'bold',
+              fontSize: '13.5px',
+              border: activeTab === 'report' ? '1.5px solid #38bdf8' : '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'report' ? '#005a9c' : 'rgba(255,255,255,0.1)',
+              color: '#ffffff',
+              boxShadow: activeTab === 'report' ? '0 2px 6px rgba(0,0,0,0.25)' : 'none',
+              transition: 'all 0.2s ease',
+              display: 'inline-flex',
+              alignItems: 'center'
+            }}
           >
             View Reports
           </button>
         </div>
       </div>
 
-      {/* Data Entry & Reports Combined Section */}
+      {/* Data Entry & Reports Section */}
       <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #dcdcdc', marginBottom: '15px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <h3 style={{ margin: '0 0 16px 0', color: '#002b49', fontSize: '18px', fontWeight: 'bold' }}>
-          Data Entry & Reports
+          {activeTab === 'entry' ? 'Data Entry & Reports' : 'Search Reports'}
         </h3>
 
         {/* Top Filters Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px 20px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: activeTab === 'entry' ? 'repeat(5, 1fr)' : 'repeat(auto-fit, minmax(140px, 1fr))', gap: '15px 20px', alignItems: 'start' }}>
+          {activeTab === 'report' && (
+            <div>
+              <label style={labelStyle}>Record ID:</label>
+              <input
+                type="text"
+                name="recordId"
+                placeholder="e.g. REC-868"
+                value={filterInputs.recordId}
+                onChange={handleFilterChange}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleApplyFilters(); }}
+                style={selectStyle}
+              />
+            </div>
+          )}
+          {activeTab === 'report' && (
+            <div>
+              <label style={labelStyle}>Operation:</label>
+              <select name="operation" value={filterInputs.operation} onChange={handleFilterChange} style={selectStyle}>
+                <option value="">All Operations</option>
+                <option value="TRACK GRINDING">Track Grinding</option>
+                <option value="BORE GRINDING">Bore Grinding</option>
+                <option value="FLANGE GRINDING">Flange Grinding</option>
+                <option value="TRACK HONNING">Track Honing</option>
+                <option value="MARKING">Marking</option>
+                <option value="ASSEMBLY">Assembly</option>
+                <option value="QUALITY EQUIPMENTS">Quality Equipments</option>
+              </select>
+            </div>
+          )}
           <div>
             <label style={labelStyle}>Date:</label>
-            <input type="date" name="date" value={filterInputs.date} onChange={handleFilterChange} style={{ ...selectStyle, padding: '5px 10px' }} />
+            <input type="date" name="date" value={filterInputs.date} onChange={handleFilterChange} onKeyDown={(e) => { if (e.key === 'Enter') handleApplyFilters(); }} style={{ ...selectStyle, padding: '5px 10px' }} />
           </div>
           <div>
             <label style={labelStyle}>Section (DGBB/TRB):</label>
@@ -2859,6 +4699,7 @@ export default function SKFQualityApp() {
               placeholder="Enter Your Machine No"
               value={filterInputs.machine}
               onChange={handleFilterChange}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleApplyFilters(); }}
               style={selectStyle}
             />
           </div>
@@ -2872,77 +4713,114 @@ export default function SKFQualityApp() {
               <option value="III">III Shift</option>
             </select>
           </div>
-          <div style={{ gridColumn: 'span 2' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <label style={{ ...labelStyle, color: '#004080', margin: 0 }}>Upload PDF Report (Attachment):</label>
+
+          {activeTab === 'entry' && (
+            <div style={{ gridColumn: 'span 2' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <label style={{ ...labelStyle, color: '#004080', margin: 0 }}>Upload PDF Report (Attachment):</label>
+                {attachedPdf && (
+                  <button
+                    type="button"
+                    onClick={() => setAttachedPdf(null)}
+                    style={{ fontSize: '11px', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Remove attached
+                  </button>
+                )}
+              </div>
+              <input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ fontSize: '13px', border: 'none', padding: '2px 0' }} />
               {attachedPdf && (
+                <div style={{ fontSize: '11px', color: '#15803d', fontWeight: 'bold', marginTop: '4px', backgroundColor: '#dcfce7', padding: '3px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  📎 {attachedPdf.name} (will concatenate with report)
+                </div>
+              )}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '6px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={handleApplyFilters}
+                style={{
+                  padding: '7px 20px',
+                  backgroundColor: '#005a9c',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 'bold',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                  height: '34px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#004070'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#005a9c'}
+              >
+                {activeTab === 'entry' ? 'Fill Report' : 'Search Report'}
+              </button>
+              {activeTab === 'report' && (
                 <button
                   type="button"
-                  onClick={() => setAttachedPdf(null)}
-                  style={{ fontSize: '11px', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                  onClick={handleClearFilters}
+                  style={{
+                    padding: '7px 12px',
+                    backgroundColor: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    fontWeight: 'bold',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    height: '34px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap'
+                  }}
+                  title="Reset search filters"
                 >
-                  Remove attached
+                  Clear
                 </button>
               )}
             </div>
-            <input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ fontSize: '13px', border: 'none', padding: '2px 0' }} />
-            {attachedPdf && (
-              <div style={{ fontSize: '11px', color: '#15803d', fontWeight: 'bold', marginTop: '4px', backgroundColor: '#dcfce7', padding: '3px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                📎 {attachedPdf.name} (will concatenate with report)
-              </div>
-            )}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '6px' }}>
-            <button
-              type="button"
-              onClick={handleApplyFilters}
-              style={{
-                padding: '7px 24px',
-                backgroundColor: '#005a9c',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                fontWeight: 'bold',
-                fontSize: '13px',
-                cursor: 'pointer',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                height: '34px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#004070'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#005a9c'}
-            >
-              Fill Report
-            </button>
           </div>
         </div>
 
         {/* Embedded Select Inspection Sheet Section */}
-        <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #e5e7eb', display: 'flex', alignItems: 'center' }}>
-          <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#000', marginRight: '15px' }}>
-            Select Inspection Sheet
-          </span>
-          <select
-            value={selectedForm}
-            onChange={(e) => setSelectedForm(e.target.value)}
-            style={{ padding: '7px 12px', borderRadius: '6px', border: '1.5px solid #005a9c', fontSize: '14px', minWidth: '320px', fontWeight: '500', outline: 'none', backgroundColor: '#fff', color: '#000' }}
-          >
-            <option value="">Choose an option</option>
-            <option value="SKF/QA/TRB/02">SKF/QA/TRB/02 - Track Grinding (Inner Ring)</option>
-            <option value="SKF/QA/TRB/03-1">SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (1)</option>
-            <option value="SKF/QA/TRB/03-2">SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (2)</option>
-            <option value="SKF/QA/TRB/04">SKF/QA/TRB/04 - Flange Grinding (Inner Ring)</option>
-            <option value="SKF/QA/TRB/05">SKF/QA/TRB/05 - Track Honning (Inner Ring)</option>
-            <option value="SKF/QA/TRB/08">SKF/QA/TRB/08 - Marking (Inner Ring)</option>
-            <option value="SKF/QA/TRB/06-1">SKF/QA/TRB/06 - Track Grinding (1) (Outer Ring)</option>
-            <option value="SKF/QA/TRB/06-2">SKF/QA/TRB/06 - Track Grinding (2) (Outer Ring)</option>
-            <option value="SKF/QA/TRB/07-1">SKF/QA/TRB/07 - Track Honning (1) (Outer Ring)</option>
-            <option value="SKF/QA/TRB/07-2">SKF/QA/TRB/07 - Track Honning (2) (Outer Ring)</option>
-          </select>
-        </div>
+        {activeTab === 'entry' && (
+          <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #e5e7eb', display: 'flex', alignItems: 'center' }}>
+            <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#000', marginRight: '15px' }}>
+              Select Inspection Sheet
+            </span>
+            <select
+              value={selectedForm}
+              onChange={(e) => setSelectedForm(e.target.value)}
+              style={{ padding: '7px 12px', borderRadius: '6px', border: '1.5px solid #005a9c', fontSize: '14px', minWidth: '320px', fontWeight: '500', outline: 'none', backgroundColor: '#fff', color: '#000' }}
+            >
+              <option value="">Choose an option</option>
+              <option value="SKF/QA/TRB/02">SKF/QA/TRB/02 - Track Grinding (Inner Ring)</option>
+              <option value="SKF/QA/TRB/03-1">SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (1)</option>
+              <option value="SKF/QA/TRB/03-2">SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (2)</option>
+              <option value="SKF/QA/TRB/04">SKF/QA/TRB/04 - Flange Grinding (Inner Ring)</option>
+              <option value="SKF/QA/TRB/05">SKF/QA/TRB/05 - Track Honning (Inner Ring)</option>
+              <option value="SKF/QA/TRB/08-1">SKF/QA/TRB/08 - Marking (Inner Ring)</option>
+              <option value="SKF/QA/TRB/06-1">SKF/QA/TRB/06 - Track Grinding (1) (Outer Ring)</option>
+              <option value="SKF/QA/TRB/06-2">SKF/QA/TRB/06 - Track Grinding (2) (Outer Ring)</option>
+              <option value="SKF/QA/TRB/07-1">SKF/QA/TRB/07 - Track Honning (1) (Outer Ring)</option>
+              <option value="SKF/QA/TRB/07-2">SKF/QA/TRB/07 - Track Honning (2) (Outer Ring)</option>
+              <option value="SKF/QA/TRB/08">SKF/QA/TRB/08 - Marking (Outer Ring)</option>
+              <option value="SKF/QA/TRB/09">SKF/QA/TRB/09 - Assembly Off Inspection(1) (Assembly)</option>
+              <option value="SKF/QA/TRB/17">SKF/QA/TRB/17 - Assembly of Quality Equipment (2) (Assembly)</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {activeTab === 'entry' ? (
@@ -2967,7 +4845,7 @@ export default function SKFQualityApp() {
               </span>
             </h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {(appliedFilters.date || appliedFilters.section || appliedFilters.channel || appliedFilters.ringSection || appliedFilters.machine || appliedFilters.shift) && (
+              {(appliedFilters.recordId || appliedFilters.operation || appliedFilters.date || appliedFilters.section || appliedFilters.channel || appliedFilters.ringSection || appliedFilters.machine || appliedFilters.shift) && (
                 <button
                   type="button"
                   onClick={handleClearFilters}
@@ -3036,7 +4914,7 @@ export default function SKFQualityApp() {
                 filteredRecords.map((rec) => (
                   <tr key={rec.id} style={{ borderBottom: '1px solid #ddd' }}>
                     <td style={{ padding: '8px', fontWeight: 'bold' }}>{rec.id}</td>
-                    <td style={{ padding: '8px' }}>{rec.date}</td>
+                    <td style={{ padding: '8px' }}>{formatDateToDDMMYY(rec.date)}</td>
                     <td style={{ padding: '8px' }}>{rec.formatNo}</td>
                     <td style={{ padding: '8px' }}>{rec.section}</td>
                     <td style={{ padding: '8px' }}>{rec.channel}</td>
