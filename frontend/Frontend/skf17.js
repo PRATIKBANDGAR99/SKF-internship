@@ -2,12 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import skfLogo from './skf-logo.jpg';
 import { 
-  supabase, 
-  isSupabaseConfigured, 
   fetchInspectionRecords, 
   saveInspectionRecord, 
-  uploadPdfToStorage 
-} from './supabaseClient';
+  uploadPdfToServer 
+} from './apiClient';
 
 const CloudIcon = ({ size = 15, color = "currentColor", style = {} }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', ...style }}>
@@ -4165,86 +4163,28 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
         <ReasonAndAuthorizationSection formData={formData} setFormData={setFormData} />
       </div>
 
-      {/* Direct Form Attachment Upload Card */}
-      {onAttachmentChange && (
-        <div style={{ maxWidth: '750px', margin: '14px auto 0 auto', backgroundColor: '#f8fafc', border: '1.5px dashed #94a3b8', borderRadius: '6px', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', boxSizing: 'border-box' }}>
-          <div>
-            <div style={{ fontWeight: 'bold', fontSize: '12.5px', color: '#002b49', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>📎</span> Supplementary PDF Attachment
-            </div>
-            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-              Attach external lab report, vendor certificate or measurement sheet to merge with this record.
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {attachedPdfName ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#dcfce7', border: '1px solid #86efac', padding: '4px 10px', borderRadius: '4px' }}>
-                <span style={{ fontSize: '11.5px', fontWeight: 'bold', color: '#166534' }}>
-                  ✓ {attachedPdfName}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onAttachmentChange(null)}
-                  style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', padding: '0 2px' }}
-                  title="Remove attached PDF"
-                >
-                  ✕
-                </button>
-              </div>
-            ) : (
-              <label style={{ backgroundColor: '#005a9c', color: '#ffffff', padding: '5px 12px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <span>+ Attach PDF</span>
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={onAttachmentChange}
-                  style={{ display: 'none' }}
-                />
-              </label>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Action Buttons: Preview & Submit */}
-      <div style={{ maxWidth: '750px', margin: '14px auto 0 auto', display: 'flex', gap: '10px', flexWrap: 'wrap', boxSizing: 'border-box' }}>
-        {onPreview && (
-          <button
-            type="button"
-            onClick={() => { setActiveVisualCell(null); onPreview(); }}
-            style={{
-              flex: '1 1 200px',
-              padding: '10px 16px',
-              backgroundColor: '#334155',
-              color: '#fff',
-              border: 'none',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              borderRadius: '4px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
-            }}
-          >
-            <EyeIcon size={14} color="#fff" /> Preview Inspection Report
-          </button>
-        )}
+      {/* Action Buttons: Submit */}
+      <div style={{ maxWidth: '750px', margin: '14px auto 0 auto', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
         <button
           type="button"
           onClick={() => { setActiveVisualCell(null); onSubmit(); }}
           style={{
-            flex: onPreview ? '2 1 300px' : '1',
-            padding: '10px 16px',
+            width: '100%',
+            padding: '12px 20px',
             backgroundColor: '#005a9c',
             color: '#fff',
             border: 'none',
             fontWeight: 'bold',
+            fontSize: '14px',
             cursor: 'pointer',
-            borderRadius: '4px'
+            borderRadius: '5px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+            transition: 'background-color 0.2s'
           }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#004070'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#005a9c'}
         >
-          {attachedPdfName ? `Submit Inspection Report (📎 Includes: ${attachedPdfName})` : 'Submit Inspection Report'}
+          Submit Inspection Report
         </button>
       </div>
     </div>
@@ -4361,12 +4301,12 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
   const handleSubmit = async () => {
     const newRecId = `REC-${Math.floor(100 + Math.random() * 900)}`;
 
-    let cloudAttachmentUrl = null;
-    if (isSupabaseConfigured && attachedPdf?.file) {
+    let serverAttachmentUrl = null;
+    if (attachedPdf?.file) {
       try {
-        cloudAttachmentUrl = await uploadPdfToStorage(attachedPdf.file, `${newRecId}_attached.pdf`);
+        serverAttachmentUrl = await uploadPdfToServer(attachedPdf.file, `${newRecId}_attached.pdf`);
       } catch (err) {
-        console.warn('Could not upload attached PDF to storage:', err);
+        console.warn('Could not upload attached PDF to server:', err);
       }
     }
 
@@ -4379,7 +4319,7 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       prepBy: 'AVS',
       appdBy: 'SS',
       date: finalFormattedDate,
-      attachmentUrl: cloudAttachmentUrl || attachedPdf?.url || null,
+      attachmentUrl: serverAttachmentUrl || attachedPdf?.url || null,
       attachmentName: attachedPdf?.name || null,
       attachmentBase64: attachedPdf?.base64 || null
     };
@@ -4400,7 +4340,7 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       formData: recFormData,
       tableData: JSON.parse(JSON.stringify(tableData)),
       attachmentFile: attachedPdf?.file || null,
-      attachmentUrl: cloudAttachmentUrl || attachedPdf?.url || null,
+      attachmentUrl: serverAttachmentUrl || attachedPdf?.url || null,
       attachmentName: attachedPdf?.name || null,
       attachmentBase64: attachedPdf?.base64 || null,
       attachedPdf: attachedPdf || null,
@@ -4417,22 +4357,20 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       return updated;
     });
 
-    if (isSupabaseConfigured) {
-      try {
-        await saveInspectionRecord(newRec);
-        if (onRecordSaved) {
-          await onRecordSaved();
-        }
-        alert(
-          attachedPdf
-            ? `Inspection Form Saved & Synced with attached PDF (${attachedPdf.name})! Check "View Reports" tab to preview or download the concatenated PDF.`
-            : 'Inspection Form Saved & Synced to Cloud Database! Check "View Reports" tab.'
-        );
-        if (onClearAttachedPdf) onClearAttachedPdf();
-        return;
-      } catch (err) {
-        console.error('Supabase sync error:', err);
+    try {
+      await saveInspectionRecord(newRec);
+      if (onRecordSaved) {
+        await onRecordSaved();
       }
+      alert(
+        attachedPdf
+          ? `Inspection Form Saved & Synced with attached PDF (${attachedPdf.name})! Check "View Reports" tab to preview or download the concatenated PDF.`
+          : 'Inspection Form Saved & Synced to Database! Check "View Reports" tab.'
+      );
+      if (onClearAttachedPdf) onClearAttachedPdf();
+      return;
+    } catch (err) {
+      console.warn('Backend sync error (offline fallback active):', err);
     }
 
     if (onRecordSaved) {
@@ -4440,7 +4378,7 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
     }
     alert(
       attachedPdf
-        ? `Inspection Form Saved with attached PDF (${attachedPdf.name})! Check "View Reports" tab to preview or download the concatenated PDF.`
+        ? `Inspection Form Saved Locally with attached PDF (${attachedPdf.name})! Check "View Reports" tab to preview or download the concatenated PDF.`
         : 'Inspection Form Saved Successfully! Go to "View Reports" to Preview, Print, or Download PDF.'
     );
     if (onClearAttachedPdf) onClearAttachedPdf();
@@ -4516,32 +4454,31 @@ export default function SKFQualityApp() {
   const previewContentRef = useRef(null);
 
   const loadRecordsFromCloud = async () => {
-    if (!isSupabaseConfigured) return;
     setIsCloudSyncing(true);
     try {
-      const cloudRecords = await fetchInspectionRecords();
-      if (cloudRecords && cloudRecords.length > 0) {
-        const mapped = cloudRecords.map((r) => ({
+      const dbRecords = await fetchInspectionRecords();
+      if (Array.isArray(dbRecords)) {
+        const mapped = dbRecords.map((r) => ({
           id: r.id,
           date: r.date,
           section: r.section || 'TRB',
           channel: r.channel || '',
-          ringSection: r.ring_section || '',
+          ringSection: r.ringSection || r.ring_section || '',
           machine: r.machine || '',
-          formatNo: r.format_no || '',
+          formatNo: r.formatNo || r.format_no || '',
           operation: r.operation || '',
           type: r.type || '',
           shift: r.shift || '',
           inspector: r.inspector || '',
           status: r.status || 'YES',
-          formData: r.form_data || null,
-          tableData: r.table_data || null,
-          pdfUrl: r.pdf_url || null,
-          attachmentUrl: r.form_data?.attachmentUrl || null,
-          attachmentName: r.form_data?.attachmentName || null,
-          attachmentBase64: r.form_data?.attachmentBase64 || null
+          formData: r.formData || r.form_data || null,
+          tableData: r.tableData || r.table_data || null,
+          pdfUrl: r.pdfUrl || r.pdf_url || null,
+          attachmentUrl: r.attachmentUrl || r.attachment_url || r.formData?.attachmentUrl || r.form_data?.attachmentUrl || null,
+          attachmentName: r.attachmentName || r.attachment_name || r.formData?.attachmentName || r.form_data?.attachmentName || null,
+          attachmentBase64: r.formData?.attachmentBase64 || r.form_data?.attachmentBase64 || null
         }));
-        // Merge cloud records with local initial database, preserving local attachment files and base64
+        
         setRecords((prev) => {
           const prevMap = new Map(prev.map((p) => [p.id, p]));
           const merged = mapped.map((m) => {
@@ -4555,17 +4492,14 @@ export default function SKFQualityApp() {
               attachedPdf: existing?.attachedPdf || m.attachedPdf || null
             };
           });
-          const cloudIds = new Set(mapped.map((m) => m.id));
-          const remainingDefaults = prev.filter((p) => !cloudIds.has(p.id));
-          const combined = [...merged, ...remainingDefaults];
           try {
-            localStorage.setItem('skf_saved_records', JSON.stringify(combined.slice(0, 50)));
+            localStorage.setItem('skf_saved_records', JSON.stringify(merged.slice(0, 50)));
           } catch (e) {}
-          return combined;
+          return merged;
         });
       }
     } catch (err) {
-      console.error('Error fetching Supabase records:', err);
+      console.warn('Error fetching records from Python backend:', err);
     } finally {
       setIsCloudSyncing(false);
     }
@@ -4761,17 +4695,17 @@ export default function SKFQualityApp() {
             }
           }
 
-          // If Supabase is configured, also save final concatenated blob to Supabase Storage
-          if (isSupabaseConfigured && !rec.pdfUrl) {
+          // If server is available, also save final concatenated blob to backend uploads
+          if (!rec.pdfUrl) {
             try {
-              const publicUrl = await uploadPdfToStorage(finalPdfBlob, `${rec.id}.pdf`);
+              const publicUrl = await uploadPdfToServer(finalPdfBlob, `${rec.id}.pdf`);
               if (publicUrl) {
                 const updatedRec = { ...rec, pdfUrl: publicUrl };
                 await saveInspectionRecord(updatedRec);
                 setRecords((prev) => prev.map((item) => item.id === rec.id ? updatedRec : item));
               }
             } catch (cloudErr) {
-              console.warn('Could not upload PDF to Supabase Storage, downloading locally:', cloudErr);
+              console.warn('Could not upload PDF to server, downloading locally:', cloudErr);
             }
           }
 
@@ -5304,8 +5238,56 @@ export default function SKFQualityApp() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="14" style={{ padding: '15px', textAlign: 'center', color: '#777' }}>
-                    No backdated records found matching the active global filters.
+                  <td colSpan="14" style={{ padding: '36px 20px', textAlign: 'center', backgroundColor: '#f8fafc' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      <DocumentIcon size={34} color="#64748b" />
+                      <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#1e293b' }}>
+                        No Inspection Reports Found
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#64748b', maxWidth: '440px', lineHeight: '1.4' }}>
+                        {records.length === 0
+                          ? 'The database currently has no saved inspection sheets. Submit an inspection report from the Entry Form to create the first record.'
+                          : 'No historical records match the active search filters. Click below to view all records.'}
+                      </div>
+                      {records.length === 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('entry')}
+                          style={{
+                            marginTop: '8px',
+                            backgroundColor: '#005a9c',
+                            color: '#ffffff',
+                            border: 'none',
+                            padding: '7px 18px',
+                            borderRadius: '5px',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.15)'
+                          }}
+                        >
+                          ➕ Fill First Inspection Report
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleClearFilters}
+                          style={{
+                            marginTop: '8px',
+                            backgroundColor: '#f1f5f9',
+                            color: '#0f172a',
+                            border: '1px solid #cbd5e1',
+                            padding: '6px 14px',
+                            borderRadius: '5px',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Clear Active Filters
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )}
@@ -5439,47 +5421,53 @@ export default function SKFQualityApp() {
                     </div>
                   </div>
 
-                  {/* Separate View Tabs Bar when PDF is attached */}
-                  {previewAttachment && (
-                    <div style={{ backgroundColor: '#0f172a', padding: '9px 20px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          type="button"
-                          onClick={() => setPreviewViewMode('sheet')}
-                          style={{
-                            padding: '6px 16px',
-                            fontSize: '12.5px',
-                            fontWeight: 'bold',
-                            borderRadius: '5px',
-                            border: 'none',
-                            cursor: 'pointer',
-                            backgroundColor: previewViewMode === 'sheet' ? '#0284c7' : '#1e293b',
-                            color: '#ffffff',
-                            transition: 'all 0.2s',
-                            boxShadow: previewViewMode === 'sheet' ? '0 2px 6px rgba(0,0,0,0.3)' : 'none'
-                          }}
-                        >
-                          📝 Inspection Sheet
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPreviewViewMode('pdf')}
-                          style={{
-                            padding: '6px 16px',
-                            fontSize: '12.5px',
-                            fontWeight: 'bold',
-                            borderRadius: '5px',
-                            border: 'none',
-                            cursor: 'pointer',
-                            backgroundColor: previewViewMode === 'pdf' ? '#0284c7' : '#1e293b',
-                            color: '#ffffff',
-                            transition: 'all 0.2s',
-                            boxShadow: previewViewMode === 'pdf' ? '0 2px 6px rgba(0,0,0,0.3)' : 'none'
-                          }}
-                        >
-                          📎 Attached PDF: {previewAttachment.name}
-                        </button>
-                      </div>
+                  {/* 2 Options Bar: Show Sheet & Show Attached PDF */}
+                  <div style={{ backgroundColor: '#0f172a', padding: '10px 20px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewViewMode('sheet')}
+                        style={{
+                          padding: '7px 18px',
+                          fontSize: '13px',
+                          fontWeight: 'bold',
+                          borderRadius: '5px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          backgroundColor: previewViewMode === 'sheet' ? '#0284c7' : '#1e293b',
+                          color: '#ffffff',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s',
+                          boxShadow: previewViewMode === 'sheet' ? '0 2px 6px rgba(0,0,0,0.3)' : 'none'
+                        }}
+                      >
+                        <span>📝</span> Show Sheet
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewViewMode('pdf')}
+                        style={{
+                          padding: '7px 18px',
+                          fontSize: '13px',
+                          fontWeight: 'bold',
+                          borderRadius: '5px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          backgroundColor: previewViewMode === 'pdf' ? '#0284c7' : '#1e293b',
+                          color: '#ffffff',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s',
+                          boxShadow: previewViewMode === 'pdf' ? '0 2px 6px rgba(0,0,0,0.3)' : 'none'
+                        }}
+                      >
+                        <span>📎</span> Show Attached PDF {previewAttachment ? `(${previewAttachment.name})` : ''}
+                      </button>
+                    </div>
+                    {previewAttachment && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <a
                           href={previewAttachment.url}
@@ -5487,11 +5475,11 @@ export default function SKFQualityApp() {
                           rel="noopener noreferrer"
                           style={{
                             color: '#38bdf8',
-                            fontSize: '11.5px',
+                            fontSize: '12px',
                             fontWeight: 'bold',
                             textDecoration: 'none',
                             backgroundColor: 'rgba(56, 189, 248, 0.12)',
-                            padding: '4px 10px',
+                            padding: '4px 12px',
                             borderRadius: '4px',
                             border: '1px solid rgba(56, 189, 248, 0.35)'
                           }}
@@ -5499,8 +5487,8 @@ export default function SKFQualityApp() {
                           Open in New Tab ↗
                         </a>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* Modal Body */}
                   <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#94a3b8' }}>
@@ -5525,13 +5513,13 @@ export default function SKFQualityApp() {
                       </div>
                     ) : (
                       <>
-                        {/* 1. Inspection Sheet View */}
+                        {/* 1. Option 1: Show Sheet */}
                         {previewViewMode === 'sheet' && (
                           <div style={{ width: '780px', maxWidth: '100%' }}>
                             {previewAttachment && (
                               <div style={{ marginBottom: '10px', backgroundColor: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '6px', padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#0369a1' }}>
                                 <span>
-                                  📎 <b>Supplementary PDF Attached:</b> {previewAttachment.name} — Switch to <b>"Attached PDF"</b> tab above to view it separately.
+                                  📎 <b>Supplementary PDF Attached:</b> {previewAttachment.name} — Click <b>"Show Attached PDF"</b> above to view it.
                                 </span>
                                 <span style={{ fontSize: '11px', color: '#075985', fontWeight: 'bold' }}>
                                   (Printing &amp; Downloading will include both attached)
@@ -5554,102 +5542,140 @@ export default function SKFQualityApp() {
                           </div>
                         )}
 
-                        {/* 2. Attached Supplementary PDF View */}
-                        {previewViewMode === 'pdf' && previewAttachment && (
-                          <div
-                            style={{
-                              backgroundColor: '#ffffff',
-                              width: '820px',
-                              maxWidth: '100%',
-                              borderRadius: '6px',
-                              boxShadow: '0 4px 18px rgba(0,0,0,0.2)',
-                              border: '1px solid #475569',
-                              overflow: 'hidden',
-                              boxSizing: 'border-box'
-                            }}
-                          >
+                        {/* 2. Option 2: Show Attached PDF */}
+                        {previewViewMode === 'pdf' && (
+                          previewAttachment ? (
                             <div
                               style={{
-                                backgroundColor: '#1e293b',
-                                color: '#ffffff',
-                                padding: '10px 16px',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                flexWrap: 'wrap',
-                                gap: '8px'
+                                backgroundColor: '#ffffff',
+                                width: '820px',
+                                maxWidth: '100%',
+                                borderRadius: '6px',
+                                boxShadow: '0 4px 18px rgba(0,0,0,0.2)',
+                                border: '1px solid #475569',
+                                overflow: 'hidden',
+                                boxSizing: 'border-box'
                               }}
                             >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ fontSize: '16px' }}>📎</span>
-                                <div>
-                                  <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>
-                                    Supplementary Attached PDF Report
-                                  </span>
-                                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-                                    {previewAttachment.name}
-                                  </span>
+                              <div
+                                style={{
+                                  backgroundColor: '#1e293b',
+                                  color: '#ffffff',
+                                  padding: '10px 16px',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  flexWrap: 'wrap',
+                                  gap: '8px'
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '16px' }}>📎</span>
+                                  <div>
+                                    <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>
+                                      Supplementary Attached PDF Report
+                                    </span>
+                                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                      {previewAttachment.name}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                  <a
+                                    href={previewAttachment.url}
+                                    download={previewAttachment.name}
+                                    style={{
+                                      backgroundColor: '#334155',
+                                      color: '#ffffff',
+                                      textDecoration: 'none',
+                                      fontSize: '11.5px',
+                                      fontWeight: 'bold',
+                                      padding: '4px 10px',
+                                      borderRadius: '4px',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                  >
+                                    Download Attached PDF ⤓
+                                  </a>
+                                  <a
+                                    href={previewAttachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      backgroundColor: '#0284c7',
+                                      color: '#ffffff',
+                                      textDecoration: 'none',
+                                      fontSize: '11.5px',
+                                      fontWeight: 'bold',
+                                      padding: '4px 10px',
+                                      borderRadius: '4px',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                  >
+                                    Open in New Tab ↗
+                                  </a>
                                 </div>
                               </div>
-                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <a
-                                  href={previewAttachment.url}
-                                  download={previewAttachment.name}
-                                  style={{
-                                    backgroundColor: '#334155',
-                                    color: '#ffffff',
-                                    textDecoration: 'none',
-                                    fontSize: '11.5px',
-                                    fontWeight: 'bold',
-                                    padding: '4px 10px',
-                                    borderRadius: '4px',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px'
-                                  }}
+                              <div style={{ height: '750px', minHeight: '600px', width: '100%', backgroundColor: '#525659' }}>
+                                <object
+                                  data={`${previewAttachment.url}#toolbar=1&navpanes=1&view=FitH`}
+                                  type="application/pdf"
+                                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
                                 >
-                                  Download Attached PDF ⤓
-                                </a>
-                                <a
-                                  href={previewAttachment.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    backgroundColor: '#0284c7',
-                                    color: '#ffffff',
-                                    textDecoration: 'none',
-                                    fontSize: '11.5px',
-                                    fontWeight: 'bold',
-                                    padding: '4px 10px',
-                                    borderRadius: '4px',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px'
-                                  }}
-                                >
-                                  Open in New Tab ↗
-                                </a>
+                                  <embed
+                                    src={`${previewAttachment.url}#toolbar=1&navpanes=1&view=FitH`}
+                                    type="application/pdf"
+                                    style={{ width: '100%', height: '100%' }}
+                                  />
+                                  <iframe
+                                    src={previewAttachment.url}
+                                    style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                                    title={`Attached PDF - ${previewAttachment.name}`}
+                                  />
+                                </object>
                               </div>
                             </div>
-                            <div style={{ height: '750px', minHeight: '600px', width: '100%', backgroundColor: '#525659' }}>
-                              <object
-                                data={`${previewAttachment.url}#toolbar=1&navpanes=1&view=FitH`}
-                                type="application/pdf"
-                                style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                          ) : (
+                            <div
+                              style={{
+                                backgroundColor: '#ffffff',
+                                width: '600px',
+                                maxWidth: '100%',
+                                borderRadius: '8px',
+                                padding: '40px 24px',
+                                textAlign: 'center',
+                                boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
+                                marginTop: '40px'
+                              }}
+                            >
+                              <div style={{ fontSize: '42px', marginBottom: '12px' }}>📎</div>
+                              <h3 style={{ margin: '0 0 8px 0', color: '#002b49', fontSize: '18px' }}>No Attached PDF</h3>
+                              <p style={{ margin: 0, color: '#64748b', fontSize: '13.5px', lineHeight: 1.5 }}>
+                                There is no supplementary PDF file attached to this inspection report (<b>{previewRecord.id}</b>).
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setPreviewViewMode('sheet')}
+                                style={{
+                                  marginTop: '20px',
+                                  padding: '8px 18px',
+                                  backgroundColor: '#005a9c',
+                                  color: '#ffffff',
+                                  border: 'none',
+                                  borderRadius: '5px',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  fontSize: '13px'
+                                }}
                               >
-                                <embed
-                                  src={`${previewAttachment.url}#toolbar=1&navpanes=1&view=FitH`}
-                                  type="application/pdf"
-                                  style={{ width: '100%', height: '100%' }}
-                                />
-                                <iframe
-                                  src={previewAttachment.url}
-                                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                                  title={`Attached PDF - ${previewAttachment.name}`}
-                                />
-                              </object>
+                                ← Return to Show Sheet
+                              </button>
                             </div>
-                          </div>
+                          )
                         )}
                       </>
                     )}

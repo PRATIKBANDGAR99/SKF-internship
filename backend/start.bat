@@ -1,0 +1,6 @@
+@echo off
+title SKF Inspection Portal - Python Backend
+echo Starting SKF Quality Assurance Python FastAPI Backend...
+echo Connecting to PostgreSQL on localhost:5432...
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+pause

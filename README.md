@@ -1,7 +1,7 @@
-# SKF Quality Assurance Portal
+# 🏭 SKF Quality Assurance Portal
 
 > **First Off Inspection Management System**  
-> A web-based quality assurance and inspection reporting application built for manufacturing lines (TRB & DGBB bearing components). Features digitized parameter checks, real-time calculations, automated PDF generation, attachment merging, and cloud persistence with Supabase.
+> A full-stack web application built for precision manufacturing lines (TRB & DGBB bearing components). Features digitized parameter checks, real-time calculations, automated PDF generation, attachment merging, and a standalone **FastAPI + PostgreSQL** backend with **pgAdmin 4** integration.
 
 ---
 
@@ -10,43 +10,49 @@
 - [Key Features](#-key-features)
 - [Architecture & Tech Stack](#-architecture--tech-stack)
 - [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Local Installation](#local-installation)
-  - [Environment Configuration](#environment-configuration)
-  - [Supabase Setup](#supabase-setup)
-- [Running the Project](#-running-the-project)
-- [Deployment Guide (Vercel)](#-deployment-guide-vercel)
-- [Available Scripts](#-available-scripts)
+- [Prerequisites](#-prerequisites)
+- [Installation & Setup](#-installation--setup)
+  - [1. Database Setup (PostgreSQL / pgAdmin 4)](#1-database-setup-postgresql--pgadmin-4)
+  - [2. Backend Setup (FastAPI)](#2-backend-setup-fastapi)
+  - [3. Frontend Setup (React + Vite)](#3-frontend-setup-react--vite)
+- [Running the Application](#-running-the-application)
+- [API Reference](#-api-reference)
+- [pgAdmin 4 Database Management](#-pgadmin-4-database-management)
+- [Troubleshooting & Common Issues](#-troubleshooting--common-issues)
+- [License](#-license)
 
 ---
 
 ## 🌟 Overview
 
-The **SKF Quality Assurance Portal** streamlines the First-Off Inspection workflow across precision manufacturing channels:
-* Digitizes inspection log sheets for operations including **Track Grinding**, **Bore Grinding**, and **Track Honing**.
-* Enforces strict quality control through tolerance validation and sample measurement logging across Shifts (I, II, III).
-* Automatically compiles, prints, and generates industry-standard A4 inspection PDFs with multi-document attachment support.
-* Persists records and generated PDFs directly to the cloud using **Supabase** (PostgreSQL + Cloud Storage).
+The **SKF Quality Assurance Portal** replaces manual paper-based inspection sheets with an end-to-end digital workflow across manufacturing channels:
+* **Digitized First-Off Logs**: Parameter logging for **Track Grinding**, **Bore Grinding**, and **Track Honing** operations.
+* **Strict Quality Control**: Tolerance validation and multi-sample measurements across Shifts (`I`, `II`, `III`).
+* **Automated PDF Engine**: In-browser PDF generation (`html2pdf.js`) and multi-document technical attachment merging (`pdf-lib`).
+* **Dual Preview Reports Dashboard**: Search, filter, and preview inspection records with instant toggling between **Sheet View** and **Attached Technical PDF**.
+* **Standalone Local Architecture**: High-performance Python **FastAPI** REST API connected to a local **PostgreSQL** database managed with **pgAdmin 4**.
 
 ---
 
 ## ✨ Key Features
 
-* **Digitized Inspection Forms**:
-  * Dynamic form generation based on **Section** (`TRB` / `DGBB`), **Channel** (`T1` – `T6`), **Ring Section** (`Inner Ring` / `Outer Ring`), and **Shift**.
-  * Multi-sample entry (e.g., 5 sample parts) for Track Diameter, Ovality, Track Angle, Crowning, Bore Diameter, Surface Roughness ($Ra$), VKR vibration parameters, and visual checks.
+* **Dynamic Inspection Forms**:
+  * Auto-configures parameters based on **Section** (`TRB` / `DGBB`), **Channel** (`T1` – `T6`), **Ring Section** (`Inner Ring` / `Outer Ring`), and **Shift**.
+  * Multi-sample logging (e.g., 5 sample parts) for Track Diameter, Ovality, Track Angle, Crowning, Bore Diameter, Surface Roughness ($Ra$), VKR vibration values, and visual checkpoints.
   * Machine release status tracking (`YES` / `NO`).
 * **Automated PDF Generation & Merging**:
-  * In-browser high-fidelity PDF compilation using `pdf-lib` and `html2pdf.js`.
-  * Multi-page report generation with automatic merging of uploaded attachments/technical drawings into a unified document.
-  * Print-optimized layout (`@media print` formatted for A4 portrait).
-* **Reports Dashboard & Analytics**:
-  * Search, filter, and view historical records by Date, Section, Channel, Ring Section, Machine Number, and Shift.
-  * Instant modal previews, one-click PDF downloads, and manual PDF report uploads.
-* **Cloud Sync with Local Fallback**:
-  * Directly integrates with Supabase for PostgreSQL storage and cloud bucket asset hosting.
-  * Functions seamlessly in offline/local state even if cloud credentials are not supplied.
+  * Instant client-side A4 PDF compilation using `pdf-lib` and `html2pdf.js`.
+  * Merges generated inspection sheets with technical drawings / supplementary PDFs into a unified document.
+  * Print-optimized layouts (`@media print` for standard A4 portrait).
+* **Reports Dashboard & Preview Modal**:
+  * Real-time search and filtering by Date, Section, Channel, Ring Section, Machine Number, and Shift.
+  * **2-Option Preview Modal**:
+    * 📝 **Show Sheet**: Formatted digital inspection sheet preview with print & download actions.
+    * 📎 **Show Attached PDF**: Embedded technical drawing / drawing attachment viewer.
+* **Local Persistence & File Storage**:
+  * Structured JSON storage for dynamic form schemas and multi-row inspection tables.
+  * Local PDF uploads served via FastAPI static file mounting (`backend/uploads/`).
+  * Seamless offline/localStorage fallback.
 
 ---
 
@@ -54,147 +60,224 @@ The **SKF Quality Assurance Portal** streamlines the First-Off Inspection workfl
 
 | Layer | Technology | Description |
 | :--- | :--- | :--- |
-| **Frontend UI** | [React 18](https://react.dev/) | Component-based UI with interactive inspection tables |
-| **Build Tool** | [Vite 5](https://vitejs.dev/) | Fast development server and optimized production bundler |
-| **PDF Engine** | [pdf-lib](https://pdf-lib.js.org/) + `html2pdf.js` | Client-side PDF rendering, merging, and document assembly |
-| **Backend as a Service** | [Supabase](https://supabase.com/) | PostgreSQL database, Row Level Security (RLS), and Cloud Storage |
-| **Hosting & CI/CD** | [Vercel](https://vercel.com/) | Static single-page application hosting with edge delivery |
+| **Frontend UI** | [React 18](https://react.dev/) + [Vite 5](https://vitejs.dev/) | Component-based UI with interactive data tables and Lucide icons |
+| **PDF Engine** | [pdf-lib](https://pdf-lib.js.org/) + `html2pdf.js` | Client-side document rendering, page assembly, and PDF merging |
+| **Backend API** | [FastAPI](https://fastapi.tiangolo.com/) + [Uvicorn](https://www.uvicorn.org/) | Asynchronous Python REST API with CORS and static file streaming |
+| **ORM & DB Layer** | [SQLAlchemy 2.0](https://www.sqlalchemy.org/) + `psycopg2` | Relational database mapping, connection pooling, and auto-DDL |
+| **Database** | [PostgreSQL 14+](https://www.postgresql.org/) + [pgAdmin 4](https://www.pgadmin.org/) | ACID-compliant relational storage for inspection records and metadata |
 
 ---
 
 ## 📁 Project Structure
 
 ```text
-├── .gitignore                  # Root git ignore rules (node_modules, env, caches)
-├── README.md                   # Project documentation
-└── frontend/                   # React + Vite application
-    ├── .env.example            # Environment variables template
-    ├── .gitignore              # Frontend-specific ignore rules
-    ├── index.html              # Entry HTML file
-    ├── main.jsx                # React DOM root entry point
-    ├── package.json            # Node dependencies and scripts
-    ├── supabase_schema.sql     # Database tables and storage bucket SQL schema
-    ├── vercel.json             # Vercel SPA routing rewrite rules
-    ├── vite.config.js          # Vite build configuration & JSX loaders
-    └── Frontend/
-        ├── skf17.js            # Main Quality Assurance Application & inspection forms
-        └── supabaseClient.js   # Supabase client, queries, and upload helpers
+skf-internship/
+├── backend/
+│   ├── uploads/                # Directory where uploaded PDF files are stored
+│   ├── .env                    # Backend environment variables (DB credentials, host/port)
+│   ├── .env.example            # Backend environment template
+│   ├── database.py             # SQLAlchemy engine, session maker, and init_db()
+│   ├── main.py                 # FastAPI application routes (CRUD, upload, health)
+│   ├── models.py               # SQLAlchemy ORM model for `inspection_records`
+│   ├── requirements.txt        # Python package dependencies
+│   ├── schema.sql              # PostgreSQL DDL script for pgAdmin Query Tool
+│   ├── schemas.py              # Pydantic validation schemas
+│   └── start.bat               # 1-click Windows startup batch script
+│
+├── frontend/
+│   ├── Frontend/
+│   │   ├── apiClient.js        # REST API client for FastAPI backend communication
+│   │   ├── skf17.js            # Main Quality Assurance Application & inspection UI
+│   │   └── supabaseClient.js   # Legacy Supabase client (kept for reference)
+│   ├── .env                    # Frontend environment variables (API base URL)
+│   ├── .env.example            # Frontend environment template
+│   ├── index.html              # Entry HTML file
+│   ├── main.jsx                # React DOM entry point
+│   ├── package.json            # Node dependencies and build scripts
+│   └── vite.config.js          # Vite build configuration
+│
+└── README.md                   # Complete project documentation
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Prerequisites
 
-### Prerequisites
-* **Node.js** (v18.0.0 or higher recommended)
-* **npm** (v9.0.0 or higher) or **yarn** / **pnpm**
-* A free [Supabase](https://supabase.com/) account (optional for local mode, required for cloud persistence)
+Ensure the following are installed on your workstation:
+1. **Node.js** (v18.0.0 or higher) & **npm**
+2. **Python** (v3.10 or higher) with `pip`
+3. **PostgreSQL** (v14 or higher) with **pgAdmin 4**
 
-### Local Installation
+---
 
-1. **Clone the repository**:
+## ⚙️ Installation & Setup
+
+### 1. Database Setup (PostgreSQL / pgAdmin 4)
+
+1. Open **pgAdmin 4** and connect to your local PostgreSQL server.
+2. In the Object Explorer, right-click **Databases** ➔ **Create** ➔ **Database...**
+3. Set the Database name to:
+   ```text
+   skf_inspection_db
+   ```
+4. Click **Save**.
+5. *(Optional)* Open the **Query Tool** on `skf_inspection_db`, paste the contents of `backend/schema.sql`, and execute (F5).  
+   > *Note: FastAPI will also automatically create the `inspection_records` table on first run via SQLAlchemy.*
+
+---
+
+### 2. Backend Setup (FastAPI)
+
+1. Open a terminal and navigate to the `backend/` directory:
    ```bash
-   git clone <repository-url>
-   cd internship/frontend
+   cd backend
    ```
 
-2. **Install dependencies**:
+2. *(Recommended)* Create and activate a Python virtual environment:
+   ```bash
+   python -m venv venv
+   # On Windows:
+   venv\Scripts\activate
+   # On macOS/Linux:
+   source venv/bin/activate
+   ```
+
+3. Install required Python packages:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Create your `.env` configuration:
+   ```bash
+   cp .env.example .env
+   ```
+
+5. Edit `backend/.env` with your PostgreSQL password:
+   ```env
+   # Format: postgresql://<username>:<password>@localhost:5432/<database_name>
+   # Note: If password has special characters like '@', URL-encode them (e.g. '@' -> '%40')
+   DATABASE_URL=postgresql://postgres:YourPasswordHere@localhost:5432/skf_inspection_db
+
+   PORT=8000
+   HOST=0.0.0.0
+   CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+   ```
+
+---
+
+### 3. Frontend Setup (React + Vite)
+
+1. Open a new terminal and navigate to the `frontend/` directory:
+   ```bash
+   cd frontend
+   ```
+
+2. Install Node dependencies:
    ```bash
    npm install
    ```
 
-### Environment Configuration
-
-Create a `.env` file in the `frontend` folder based on `.env.example`:
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and fill in your Supabase project credentials:
-
-```env
-# Supabase Configuration
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-> **Note**: If left blank or unconfigured, the portal runs in **Local Mode** with mock memory storage.
-
-### Supabase Setup
-
-To initialize the database and storage bucket on your Supabase project:
-1. Open your [Supabase Dashboard](https://supabase.com/dashboard).
-2. Navigate to the **SQL Editor** tab.
-3. Click **New Query**, paste the full contents of [`frontend/supabase_schema.sql`](./frontend/supabase_schema.sql), and click **Run**.
-4. This script sets up:
-   - The `inspection_records` table with Row Level Security (RLS).
-   - The `inspection-reports` public storage bucket for PDF files.
-   - Public read/write access policies for records and report files.
-
----
-
-## 💻 Running the Project
-
-### Start Development Server
-```bash
-npm run dev
-```
-Open your browser and navigate to `http://localhost:5173`.
-
-### Production Build
-```bash
-npm run build
-```
-The optimized production bundle will be output to `frontend/dist/`.
-
-### Preview Production Build
-```bash
-npm run preview
-```
-
----
-
-## 🌐 Deployment Guide (Vercel)
-
-This application can be deployed **100% on Vercel** without any separate backend server.
-
-1. **Push your code to GitHub / GitLab / Bitbucket**:
+3. Create your `.env` configuration:
    ```bash
-   git add .
-   git commit -m "feat: complete SKF quality inspection portal"
-   git push origin main
+   cp .env.example .env
    ```
 
-2. **Import into Vercel**:
-   - Go to [Vercel Dashboard](https://vercel.com/) and click **Add New** -> **Project**.
-   - Select your repository.
-
-3. **Configure Project Settings**:
-   - **Root Directory**: Click **Edit** and choose `frontend` *(Important: the package.json is located inside `frontend/`)*.
-   - **Framework Preset**: Vite (automatically detected).
-
-4. **Add Environment Variables**:
-   In the Vercel project settings, add the following under **Environment Variables**:
-   - `VITE_SUPABASE_URL` = Your Supabase project URL
-   - `VITE_SUPABASE_ANON_KEY` = Your Supabase anon/public key
-
-5. **Deploy**:
-   - Click **Deploy**. Vercel will build and deploy the app with global CDN distribution and SSL.
+4. Verify `frontend/.env` points to your backend:
+   ```env
+   VITE_API_BASE_URL=http://localhost:8000
+   ```
 
 ---
 
-## 📜 Available Scripts
+## 💻 Running the Application
 
-Run these inside the `frontend/` directory:
+### Option A: Standard Terminal Startup
 
-| Command | Action |
-| :--- | :--- |
-| `npm run dev` | Starts the local Vite development server with Hot Module Replacement (HMR) |
-| `npm run build` | Compiles and optimizes assets into `dist/` for production |
-| `npm run preview` | Locally serves the production build from `dist/` |
+**Terminal 1 — Backend:**
+```bash
+cd backend
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+> Backend API will be live at: **`http://127.0.0.1:8000`**  
+> Interactive Swagger Docs: **`http://127.0.0.1:8000/docs`**
+
+**Terminal 2 — Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+> Frontend Application will be live at: **`http://localhost:5173`**
+
+### Option B: 1-Click Startup (Windows)
+Double-click `backend/start.bat` to launch the FastAPI server, then run `npm run dev` in `frontend/`.
+
+---
+
+## 📡 API Reference
+
+Interactive OpenAPI documentation is available at **`http://localhost:8000/docs`**.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/health` | System health check & PostgreSQL connection status |
+| `GET` | `/api/records` | List all inspection records (supports `?search=` filter) |
+| `GET` | `/api/records/{id}` | Get single inspection record by ID |
+| `POST` | `/api/records` | Create or update an inspection record (Upsert) |
+| `DELETE` | `/api/records/{id}` | Delete an inspection record |
+| `POST` | `/api/upload` | Upload PDF file (multipart form data) to local storage |
+| `GET` | `/uploads/{filename}` | Stream/download uploaded PDF files |
+
+---
+
+## 🔍 pgAdmin 4 Database Management
+
+You can inspect, query, and verify submitted inspection data directly in **pgAdmin 4**:
+
+1. In pgAdmin 4, navigate to:
+   ```text
+   Servers ➔ PostgreSQL ➔ Databases ➔ skf_inspection_db ➔ Schemas ➔ public ➔ Tables ➔ inspection_records
+   ```
+2. Right-click `inspection_records` ➔ **View/Edit Data** ➔ **All Rows**.
+3. Or run custom SQL queries in the **Query Tool**:
+   ```sql
+   -- View all inspection records sorted by newest first
+   SELECT id, date, section, channel, ring_section, machine, operation, created_at
+   FROM public.inspection_records
+   ORDER BY created_at DESC;
+
+   -- Search records for a specific channel and section
+   SELECT *
+   FROM public.inspection_records
+   WHERE section = 'TRB' AND channel = 'T1'
+   ORDER BY date DESC;
+   ```
+
+---
+
+## 🛠️ Troubleshooting & Common Issues
+
+### 1. `[WinError 10013] An attempt was made to access a socket...`
+* **Cause**: Port 8000 is already in use by another running Uvicorn/Python process.
+* **Fix**: Terminate the previous process or find its PID in PowerShell:
+  ```powershell
+  netstat -ano | findstr :8000
+  taskkill /PID <PID_NUMBER> /F
+  ```
+
+### 2. `FATAL: database "skf_inspection_db" does not exist`
+* **Cause**: The database has not been created yet in PostgreSQL.
+* **Fix**: In pgAdmin 4, right-click **Databases** ➔ **Create** ➔ **Database...**, name it `skf_inspection_db`, and click **Save**.
+
+### 3. `FATAL: password authentication failed for user "postgres"`
+* **Cause**: Incorrect password in `backend/.env` or special characters not URL-encoded.
+* **Fix**: If your password contains special characters (like `@`, `#`, `$`), URL-encode them. Example: `Sarwadnya@123` becomes `Sarwadnya%40123`.
+
+### 4. CORS Errors in Browser Console
+* **Cause**: Frontend origin not allowed in backend CORS policy.
+* **Fix**: Ensure `CORS_ORIGINS` in `backend/.env` includes `http://localhost:5173,http://127.0.0.1:5173`.
 
 ---
 
 ## 📄 License
-This project is developed for quality assurance management and internal operations. All rights reserved.
+
+This application is developed for First Off Quality Inspection Management and internal manufacturing operations. All rights reserved.
