@@ -25,18 +25,56 @@ async function mergePdfWithAttachment(basePdfBlob, attachedPdf) {
   if (!attachedPdf) return basePdfBlob;
   try {
     const baseBytes = await basePdfBlob.arrayBuffer();
-    let attachedBytes;
+    let attachedBytes = null;
 
     if (typeof attachedPdf === 'string') {
-      const resp = await fetch(attachedPdf);
-      attachedBytes = await resp.arrayBuffer();
+      if (attachedPdf.startsWith('data:')) {
+        const base64Data = attachedPdf.split(',')[1] || attachedPdf;
+        const binaryStr = atob(base64Data);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        attachedBytes = bytes.buffer;
+      } else {
+        const resp = await fetch(attachedPdf);
+        attachedBytes = await resp.arrayBuffer();
+      }
     } else if (attachedPdf instanceof Blob || attachedPdf instanceof File) {
       attachedBytes = await attachedPdf.arrayBuffer();
     } else if (attachedPdf instanceof ArrayBuffer) {
       attachedBytes = attachedPdf;
-    } else {
-      return basePdfBlob;
+    } else if (attachedPdf && typeof attachedPdf === 'object') {
+      if (attachedPdf.base64) {
+        const base64Data = attachedPdf.base64.split(',')[1] || attachedPdf.base64;
+        const binaryStr = atob(base64Data);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        attachedBytes = bytes.buffer;
+      } else if (attachedPdf.file && (attachedPdf.file instanceof Blob || attachedPdf.file instanceof File)) {
+        attachedBytes = await attachedPdf.file.arrayBuffer();
+      } else if (attachedPdf.url) {
+        if (attachedPdf.url.startsWith('data:')) {
+          const base64Data = attachedPdf.url.split(',')[1] || attachedPdf.url;
+          const binaryStr = atob(base64Data);
+          const len = binaryStr.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+          }
+          attachedBytes = bytes.buffer;
+        } else {
+          const resp = await fetch(attachedPdf.url);
+          attachedBytes = await resp.arrayBuffer();
+        }
+      }
     }
+
+    if (!attachedBytes) return basePdfBlob;
 
     const mergedDoc = await PDFDocument.create();
     const doc1 = await PDFDocument.load(baseBytes);
@@ -577,6 +615,78 @@ const getRingSectionFromFormKey = (formKey = '', fallback = '') => {
     return 'INNER RING';
   }
   return fallback;
+};
+
+const getRecordAttachmentInfo = (rec) => {
+  if (!rec) return null;
+
+  const rawAttachment =
+    rec.attachedPdf ||
+    rec.attachmentFile ||
+    rec.attachmentBase64 ||
+    rec.attachmentUrl ||
+    rec.formData?.attachedPdf ||
+    rec.formData?.attachmentBase64 ||
+    rec.formData?.attachmentUrl ||
+    rec.file ||
+    null;
+
+  if (!rawAttachment) return null;
+
+  let url = null;
+  let name =
+    rec.attachmentName ||
+    rec.formData?.attachmentName ||
+    (typeof rawAttachment === 'object' ? rawAttachment.name : '') ||
+    'Attached_Report.pdf';
+
+  // 1. If it's an object with base64 / url / file
+  if (typeof rawAttachment === 'object' && rawAttachment !== null && !(rawAttachment instanceof Blob) && !(rawAttachment instanceof File)) {
+    if (rawAttachment.base64) {
+      url = rawAttachment.base64;
+    } else if (rawAttachment.url) {
+      url = rawAttachment.url;
+    } else if (rawAttachment.file && (rawAttachment.file instanceof Blob || rawAttachment.file instanceof File)) {
+      if (!rawAttachment._cachedUrl) {
+        try {
+          rawAttachment._cachedUrl = URL.createObjectURL(rawAttachment.file);
+        } catch (e) {
+          console.warn('Could not create ObjectURL for attachment:', e);
+        }
+      }
+      url = rawAttachment._cachedUrl;
+    }
+    if (rawAttachment.name) name = rawAttachment.name;
+  } else if (typeof rawAttachment === 'string') {
+    url = rawAttachment;
+    if (!name || name === 'Attached_Report.pdf') {
+      const parts = rawAttachment.split('/');
+      const last = parts[parts.length - 1].split('?')[0];
+      if (last && last.toLowerCase().endsWith('.pdf')) {
+        name = decodeURIComponent(last);
+      }
+    }
+  } else if (rawAttachment instanceof Blob || rawAttachment instanceof File) {
+    if (!rec._cachedAttachmentUrl) {
+      try {
+        rec._cachedAttachmentUrl = URL.createObjectURL(rawAttachment);
+      } catch (e) {
+        console.warn('Could not create ObjectURL for attachment:', e);
+      }
+    }
+    url = rec._cachedAttachmentUrl;
+    if (rawAttachment.name) name = rawAttachment.name;
+  }
+
+  // Check fallback URL fields if url is not yet resolved
+  if (!url) {
+    if (rec.attachmentBase64) url = rec.attachmentBase64;
+    else if (rec.formData?.attachmentBase64) url = rec.formData.attachmentBase64;
+    else if (rec.attachmentUrl) url = rec.attachmentUrl;
+    else if (rec.formData?.attachmentUrl) url = rec.formData.attachmentUrl;
+  }
+
+  return url ? { url, name, raw: rawAttachment } : null;
 };
 
 const isOuterRingTrackGrinding = (formKey = '', op = '', ringSection = '') => {
@@ -2406,7 +2516,7 @@ function DiagonalInputCell({
   );
 }
 
-function InspectionTemplate({ printRef, formData, setFormData, tableData, setTableData, onSubmit, onAttachmentChange, attachedPdfName }) {
+function InspectionTemplate({ printRef, formData, setFormData, tableData, setTableData, onSubmit, onPreview, onAttachmentChange, attachedPdfName }) {
   const [activeVisualCell, setActiveVisualCell] = useState(null); // { rIdx, sIdx }
   const popupRef = useRef(null);
   const isQualityEquipments = isQualityEquipmentsForm(formData.formatNo, formData.operation);
@@ -4055,14 +4165,93 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
         <ReasonAndAuthorizationSection formData={formData} setFormData={setFormData} />
       </div>
 
-      <button onClick={() => { setActiveVisualCell(null); onSubmit(); }} style={{ width: '100%', maxWidth: '750px', display: 'block', margin: '15px auto 0 auto', padding: '10px', backgroundColor: '#005a9c', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px' }}>
-        {attachedPdfName ? `Submit Inspection Report (📎 Includes: ${attachedPdfName})` : 'Submit Inspection Report'}
-      </button>
+      {/* Direct Form Attachment Upload Card */}
+      {onAttachmentChange && (
+        <div style={{ maxWidth: '750px', margin: '14px auto 0 auto', backgroundColor: '#f8fafc', border: '1.5px dashed #94a3b8', borderRadius: '6px', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', boxSizing: 'border-box' }}>
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: '12.5px', color: '#002b49', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>📎</span> Supplementary PDF Attachment
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+              Attach external lab report, vendor certificate or measurement sheet to merge with this record.
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {attachedPdfName ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#dcfce7', border: '1px solid #86efac', padding: '4px 10px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '11.5px', fontWeight: 'bold', color: '#166534' }}>
+                  ✓ {attachedPdfName}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onAttachmentChange(null)}
+                  style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', padding: '0 2px' }}
+                  title="Remove attached PDF"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <label style={{ backgroundColor: '#005a9c', color: '#ffffff', padding: '5px 12px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                <span>+ Attach PDF</span>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={onAttachmentChange}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Action Buttons: Preview & Submit */}
+      <div style={{ maxWidth: '750px', margin: '14px auto 0 auto', display: 'flex', gap: '10px', flexWrap: 'wrap', boxSizing: 'border-box' }}>
+        {onPreview && (
+          <button
+            type="button"
+            onClick={() => { setActiveVisualCell(null); onPreview(); }}
+            style={{
+              flex: '1 1 200px',
+              padding: '10px 16px',
+              backgroundColor: '#334155',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}
+          >
+            <EyeIcon size={14} color="#fff" /> Preview Inspection Report
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => { setActiveVisualCell(null); onSubmit(); }}
+          style={{
+            flex: onPreview ? '2 1 300px' : '1',
+            padding: '10px 16px',
+            backgroundColor: '#005a9c',
+            color: '#fff',
+            border: 'none',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            borderRadius: '4px'
+          }}
+        >
+          {attachedPdfName ? `Submit Inspection Report (📎 Includes: ${attachedPdfName})` : 'Submit Inspection Report'}
+        </button>
+      </div>
     </div>
   );
 }
 
-function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSaved, showAppAlert, attachedPdf, onClearAttachedPdf }) {
+function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSaved, showAppAlert, attachedPdf, onClearAttachedPdf, onPreviewForm, onUploadPdf }) {
   const printRef = useRef();
 
   const initialRing = getRingSectionFromFormKey(selectedFormKey, filters?.ringSection || '');
@@ -4130,6 +4319,45 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
     }
   }, [filters]);
 
+  const handlePreviewCurrentForm = () => {
+    const finalFormattedDate = formatDateToDDMMYY(formData.date);
+    const tempRec = {
+      id: 'PREVIEW-DRAFT',
+      date: finalFormattedDate || new Date().toISOString().split('T')[0],
+      section: filters.section || 'TRB',
+      channel: formData.channelNo,
+      ringSection: formData.grinding,
+      machine: formData.machineNo,
+      formatNo: formData.formatNo,
+      operation: formData.operation,
+      type: formData.type,
+      shift: formData.shift,
+      inspector: formData.inspectorName,
+      status: formData.machineReleased,
+      formData: {
+        ...formData,
+        revisionNo: '1',
+        revDate: '14/07',
+        prepBy: 'AVS',
+        appdBy: 'SS',
+        date: finalFormattedDate,
+        attachmentUrl: attachedPdf?.url || null,
+        attachmentName: attachedPdf?.name || null,
+        attachmentBase64: attachedPdf?.base64 || null
+      },
+      tableData: JSON.parse(JSON.stringify(tableData)),
+      attachmentFile: attachedPdf?.file || null,
+      attachmentUrl: attachedPdf?.url || null,
+      attachmentName: attachedPdf?.name || null,
+      attachmentBase64: attachedPdf?.base64 || null,
+      attachedPdf: attachedPdf || null,
+      pdfUrl: null
+    };
+    if (onPreviewForm) {
+      onPreviewForm(tempRec);
+    }
+  };
+
   const handleSubmit = async () => {
     const newRecId = `REC-${Math.floor(100 + Math.random() * 900)}`;
 
@@ -4152,7 +4380,8 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       appdBy: 'SS',
       date: finalFormattedDate,
       attachmentUrl: cloudAttachmentUrl || attachedPdf?.url || null,
-      attachmentName: attachedPdf?.name || null
+      attachmentName: attachedPdf?.name || null,
+      attachmentBase64: attachedPdf?.base64 || null
     };
 
     const newRec = {
@@ -4173,10 +4402,20 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       attachmentFile: attachedPdf?.file || null,
       attachmentUrl: cloudAttachmentUrl || attachedPdf?.url || null,
       attachmentName: attachedPdf?.name || null,
+      attachmentBase64: attachedPdf?.base64 || null,
+      attachedPdf: attachedPdf || null,
       pdfUrl: null
     };
 
-    setRecords((prev) => [newRec, ...prev]);
+    setRecords((prev) => {
+      const updated = [newRec, ...prev];
+      try {
+        localStorage.setItem('skf_saved_records', JSON.stringify(updated.slice(0, 50)));
+      } catch (e) {
+        console.warn('Could not save records to localStorage:', e);
+      }
+      return updated;
+    });
 
     if (isSupabaseConfigured) {
       try {
@@ -4215,6 +4454,8 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       tableData={tableData}
       setTableData={setTableData}
       onSubmit={handleSubmit}
+      onPreview={handlePreviewCurrentForm}
+      onAttachmentChange={onUploadPdf}
       attachedPdfName={attachedPdf?.name || ''}
     />
   );
@@ -4250,8 +4491,22 @@ export default function SKFQualityApp() {
     shift: ''
   });
 
-  const [records, setRecords] = useState(initialDatabase);
+  const [records, setRecords] = useState(() => {
+    try {
+      const saved = localStorage.getItem('skf_saved_records');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading saved records from localStorage:', e);
+    }
+    return initialDatabase;
+  });
   const [previewRecord, setPreviewRecord] = useState(null);
+  const [previewViewMode, setPreviewViewMode] = useState('sheet');
   const [printRecord, setPrintRecord] = useState(null);
   const [downloadingRecord, setDownloadingRecord] = useState(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -4283,13 +4538,30 @@ export default function SKFQualityApp() {
           tableData: r.table_data || null,
           pdfUrl: r.pdf_url || null,
           attachmentUrl: r.form_data?.attachmentUrl || null,
-          attachmentName: r.form_data?.attachmentName || null
+          attachmentName: r.form_data?.attachmentName || null,
+          attachmentBase64: r.form_data?.attachmentBase64 || null
         }));
-        // Merge cloud records with local initial database, prioritizing cloud
+        // Merge cloud records with local initial database, preserving local attachment files and base64
         setRecords((prev) => {
+          const prevMap = new Map(prev.map((p) => [p.id, p]));
+          const merged = mapped.map((m) => {
+            const existing = prevMap.get(m.id);
+            return {
+              ...m,
+              attachmentFile: existing?.attachmentFile || m.attachmentFile || null,
+              attachmentUrl: existing?.attachmentUrl || m.attachmentUrl || null,
+              attachmentName: existing?.attachmentName || m.attachmentName || null,
+              attachmentBase64: existing?.attachmentBase64 || m.attachmentBase64 || null,
+              attachedPdf: existing?.attachedPdf || m.attachedPdf || null
+            };
+          });
           const cloudIds = new Set(mapped.map((m) => m.id));
           const remainingDefaults = prev.filter((p) => !cloudIds.has(p.id));
-          return [...mapped, ...remainingDefaults];
+          const combined = [...merged, ...remainingDefaults];
+          try {
+            localStorage.setItem('skf_saved_records', JSON.stringify(combined.slice(0, 50)));
+          } catch (e) {}
+          return combined;
         });
       }
     } catch (err) {
@@ -4345,23 +4617,38 @@ export default function SKFQualityApp() {
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    if (!e) {
+      setAttachedPdf(null);
+      return;
+    }
+    const file = e.target?.files ? e.target.files[0] : (e instanceof File ? e : null);
+    if (!file) {
+      setAttachedPdf(null);
+      return;
+    }
 
-    if (file.type !== 'application/pdf') {
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       alert('Please upload a valid PDF file.');
       return;
     }
 
     const localPdfUrl = URL.createObjectURL(file);
-    setAttachedPdf({
-      file,
-      name: file.name,
-      url: localPdfUrl
-    });
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Str = reader.result;
+      setAttachedPdf({
+        file,
+        name: file.name,
+        url: localPdfUrl,
+        base64: base64Str,
+        size: `${(file.size / 1024).toFixed(1)} KB`
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handlePreviewRecord = (rec) => {
+  const handlePreviewRecord = (rec, mode = 'sheet') => {
+    setPreviewViewMode(mode);
     setPreviewRecord(rec);
   };
 
@@ -4371,7 +4658,8 @@ export default function SKFQualityApp() {
       return;
     }
 
-    const attachment = rec.attachmentFile || rec.attachmentUrl || rec.formData?.attachmentUrl || rec.attachedPdf;
+    const attachmentInfo = getRecordAttachmentInfo(rec);
+    const attachment = attachmentInfo?.url || rec.attachmentFile || rec.attachmentUrl || rec.formData?.attachmentUrl || rec.attachedPdf;
     if (attachment) {
       try {
         setIsGeneratingPdf(true);
@@ -4462,7 +4750,8 @@ export default function SKFQualityApp() {
           const basePdfBlob = await worker.outputPdf('blob');
 
           // Concatenate uploaded PDF attachment if present
-          const attachment = rec.attachmentFile || rec.attachmentUrl || rec.formData?.attachmentUrl || rec.attachedPdf;
+          const attachmentInfo = getRecordAttachmentInfo(rec);
+          const attachment = attachmentInfo?.url || rec.attachmentFile || rec.attachmentUrl || rec.formData?.attachmentUrl || rec.attachedPdf;
           let finalPdfBlob = basePdfBlob;
           if (attachment) {
             try {
@@ -4730,8 +5019,8 @@ export default function SKFQualityApp() {
               </div>
               <input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ fontSize: '13px', border: 'none', padding: '2px 0' }} />
               {attachedPdf && (
-                <div style={{ fontSize: '11px', color: '#15803d', fontWeight: 'bold', marginTop: '4px', backgroundColor: '#dcfce7', padding: '3px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                  📎 {attachedPdf.name} (will concatenate with report)
+                <div style={{ fontSize: '11.5px', color: '#15803d', fontWeight: 'bold', marginTop: '4px', backgroundColor: '#dcfce7', padding: '3px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  📎 {attachedPdf.name} ({attachedPdf.size || 'PDF'})
                 </div>
               )}
             </div>
@@ -4832,6 +5121,8 @@ export default function SKFQualityApp() {
             onRecordSaved={loadRecordsFromCloud}
             attachedPdf={attachedPdf}
             onClearAttachedPdf={() => setAttachedPdf(null)}
+            onPreviewForm={handlePreviewRecord}
+            onUploadPdf={handleFileUpload}
           />
         </div>
       ) : (
@@ -4911,96 +5202,106 @@ export default function SKFQualityApp() {
             </thead>
             <tbody>
               {filteredRecords.length > 0 ? (
-                filteredRecords.map((rec) => (
-                  <tr key={rec.id} style={{ borderBottom: '1px solid #ddd' }}>
-                    <td style={{ padding: '8px', fontWeight: 'bold' }}>{rec.id}</td>
-                    <td style={{ padding: '8px' }}>{formatDateToDDMMYY(rec.date)}</td>
-                    <td style={{ padding: '8px' }}>{rec.formatNo}</td>
-                    <td style={{ padding: '8px' }}>{rec.section}</td>
-                    <td style={{ padding: '8px' }}>{rec.channel}</td>
-                    <td style={{ padding: '8px' }}>{rec.ringSection}</td>
-                    <td style={{ padding: '8px', fontWeight: 'bold' }}>{rec.machine}</td>
-                    <td style={{ padding: '8px' }}>{rec.operation}</td>
-                    <td style={{ padding: '8px' }}>{rec.type}</td>
-                    <td style={{ padding: '8px' }}>{rec.shift}</td>
-                    <td style={{ padding: '8px' }}>{rec.inspector}</td>
-                    <td style={{ padding: '8px', color: rec.status === 'YES' ? 'green' : 'red', fontWeight: 'bold' }}>{rec.status}</td>
-                    <td style={{ padding: '8px', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                      <button
-                        type="button"
-                        onClick={() => handlePreviewRecord(rec)}
-                        style={{
-                          backgroundColor: '#005a9c',
-                          color: '#fff',
-                          border: 'none',
-                          padding: '5px 10px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '12px',
-                          marginRight: '6px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          transition: 'background-color 0.15s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#004070'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#005a9c'}
-                        title="Preview inspection report"
-                      >
-                        <EyeIcon size={13} color="#ffffff" /> Preview
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handlePrintRecord(rec)}
-                        style={{
-                          backgroundColor: '#334155',
-                          color: '#fff',
-                          border: 'none',
-                          padding: '5px 10px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '12px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          transition: 'background-color 0.15s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1e293b'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#334155'}
-                        title="Print inspection report"
-                      >
-                        <PrintIcon size={13} color="#ffffff" /> Print
-                      </button>
-                    </td>
-                    <td style={{ padding: '8px', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                      <button
-                        type="button"
-                        onClick={() => handleDownloadRecord(rec)}
-                        style={{
-                          backgroundColor: '#166534',
-                          color: '#fff',
-                          border: 'none',
-                          padding: '5px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '12px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          transition: 'background-color 0.15s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#14532d'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#166534'}
-                        title="Download as normal PDF"
-                      >
-                        <DownloadIcon size={13} color="#ffffff" /> Download PDF
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                filteredRecords.map((rec) => {
+                  const attInfo = getRecordAttachmentInfo(rec);
+                  return (
+                    <tr key={rec.id} style={{ borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', fontWeight: 'bold' }}>
+                        <div>{rec.id}</div>
+                        {attInfo && (
+                          <div style={{ fontSize: '11px', color: '#0369a1', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '3px', backgroundColor: '#e0f2fe', padding: '1px 6px', borderRadius: '3px', marginTop: '2px' }} title={`Attached: ${attInfo.name}`}>
+                            📎 PDF Attached
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '8px' }}>{formatDateToDDMMYY(rec.date)}</td>
+                      <td style={{ padding: '8px' }}>{rec.formatNo}</td>
+                      <td style={{ padding: '8px' }}>{rec.section}</td>
+                      <td style={{ padding: '8px' }}>{rec.channel}</td>
+                      <td style={{ padding: '8px' }}>{rec.ringSection}</td>
+                      <td style={{ padding: '8px', fontWeight: 'bold' }}>{rec.machine}</td>
+                      <td style={{ padding: '8px' }}>{rec.operation}</td>
+                      <td style={{ padding: '8px' }}>{rec.type}</td>
+                      <td style={{ padding: '8px' }}>{rec.shift}</td>
+                      <td style={{ padding: '8px' }}>{rec.inspector}</td>
+                      <td style={{ padding: '8px', color: rec.status === 'YES' ? 'green' : 'red', fontWeight: 'bold' }}>{rec.status}</td>
+                      <td style={{ padding: '8px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewRecord(rec, 'sheet')}
+                          style={{
+                            backgroundColor: '#005a9c',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '5px 10px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            marginRight: '6px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'background-color 0.15s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#004070'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#005a9c'}
+                          title="Preview inspection report"
+                        >
+                          <EyeIcon size={13} color="#ffffff" /> Preview
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePrintRecord(rec)}
+                          style={{
+                            backgroundColor: '#334155',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '5px 10px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            transition: 'background-color 0.15s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1e293b'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#334155'}
+                          title={attInfo ? 'Print Inspection Sheet + Attached PDF (Merged)' : 'Print Inspection Report'}
+                        >
+                          <PrintIcon size={13} color="#ffffff" /> Print
+                        </button>
+                      </td>
+                      <td style={{ padding: '8px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadRecord(rec)}
+                          style={{
+                            backgroundColor: '#166534',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '5px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            transition: 'background-color 0.15s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#14532d'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#166534'}
+                          title={attInfo ? 'Download Merged Inspection Sheet + Attached PDF' : 'Download Inspection Report PDF'}
+                        >
+                          <DownloadIcon size={13} color="#ffffff" /> Download PDF
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="14" style={{ padding: '15px', textAlign: 'center', color: '#777' }}>
@@ -5022,12 +5323,12 @@ export default function SKFQualityApp() {
             left: 0,
             width: '100vw',
             height: '100vh',
-            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backgroundColor: 'rgba(15, 23, 42, 0.78)',
             zIndex: 10000,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '20px',
+            padding: '16px',
             boxSizing: 'border-box'
           }}
         >
@@ -5035,9 +5336,9 @@ export default function SKFQualityApp() {
             style={{
               backgroundColor: '#f1f5f9',
               borderRadius: '10px',
-              width: '880px',
+              width: '900px',
               maxWidth: '96vw',
-              maxHeight: '94vh',
+              maxHeight: '95vh',
               display: 'flex',
               flexDirection: 'column',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
@@ -5046,112 +5347,316 @@ export default function SKFQualityApp() {
             }}
           >
             {/* Modal Header */}
-            <div
-              style={{
-                padding: '12px 20px',
-                backgroundColor: '#002b49',
-                color: '#ffffff',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <DocumentIcon size={18} color="#ffffff" style={{ marginRight: '8px' }} />
-                <span style={{ fontSize: '16px', fontWeight: 'bold', marginRight: '10px' }}>
-                  Inspection Report Preview: {previewRecord.id}
-                </span>
-                <span style={{ fontSize: '12px', opacity: 0.85, backgroundColor: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '4px' }}>
-                  {previewRecord.formatNo} {previewRecord.operation ? `• ${previewRecord.operation}` : ''}
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => handlePrintRecord(previewRecord)}
-                  style={{
-                    backgroundColor: '#ffffff',
-                    color: '#002b49',
-                    border: 'none',
-                    padding: '6px 14px',
-                    borderRadius: '5px',
-                    fontWeight: 'bold',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <PrintIcon size={13} color="#002b49" /> Print
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDownloadFromPreview}
-                  style={{
-                    backgroundColor: '#16a34a',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '6px 14px',
-                    borderRadius: '5px',
-                    fontWeight: 'bold',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <DownloadIcon size={13} color="#ffffff" /> Download PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewRecord(null)}
-                  style={{
-                    backgroundColor: '#dc2626',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '6px 12px',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    marginLeft: '4px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                  title="Close Preview"
-                >
-                  <CloseIcon size={12} color="#ffffff" />
-                </button>
-              </div>
-            </div>
+            {(() => {
+              const previewAttachment = getRecordAttachmentInfo(previewRecord);
+              return (
+                <>
+                  <div
+                    style={{
+                      padding: '12px 20px',
+                      backgroundColor: '#002b49',
+                      color: '#ffffff',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <DocumentIcon size={18} color="#ffffff" style={{ marginRight: '4px' }} />
+                      <span style={{ fontSize: '16px', fontWeight: 'bold', marginRight: '6px' }}>
+                        Inspection Report Preview: {previewRecord.id}
+                      </span>
+                      <span style={{ fontSize: '12px', opacity: 0.85, backgroundColor: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '4px' }}>
+                        {previewRecord.formatNo} {previewRecord.operation ? `• ${previewRecord.operation}` : ''}
+                      </span>
+                      {previewAttachment && (
+                        <span style={{ fontSize: '11.5px', backgroundColor: '#0284c7', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
+                          📎 PDF Attached
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => handlePrintRecord(previewRecord)}
+                        style={{
+                          backgroundColor: '#ffffff',
+                          color: '#002b49',
+                          border: 'none',
+                          padding: '6px 14px',
+                          borderRadius: '5px',
+                          fontWeight: 'bold',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                        title={previewAttachment ? 'Print Inspection Sheet + Attached PDF (Merged)' : 'Print Inspection Sheet'}
+                      >
+                        <PrintIcon size={13} color="#002b49" /> Print
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDownloadFromPreview}
+                        style={{
+                          backgroundColor: '#16a34a',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '6px 14px',
+                          borderRadius: '5px',
+                          fontWeight: 'bold',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                        title={previewAttachment ? 'Download Merged Inspection Sheet + Attached PDF' : 'Download PDF'}
+                      >
+                        <DownloadIcon size={13} color="#ffffff" /> Download PDF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewRecord(null)}
+                        style={{
+                          backgroundColor: '#dc2626',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '5px',
+                          cursor: 'pointer',
+                          marginLeft: '4px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        title="Close Preview"
+                      >
+                        <CloseIcon size={12} color="#ffffff" />
+                      </button>
+                    </div>
+                  </div>
 
-            {/* Modal Body */}
-            <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', justifyContent: 'center', backgroundColor: '#cbd5e1' }}>
-              {previewRecord.pdfUrl && !previewRecord.formData ? (
-                <iframe
-                  src={previewRecord.pdfUrl}
-                  style={{ width: '100%', height: '650px', border: 'none', borderRadius: '4px', backgroundColor: '#fff' }}
-                  title="Uploaded PDF View"
-                />
-              ) : (
-                <div
-                  ref={previewContentRef}
-                  style={{
-                    backgroundColor: '#ffffff',
-                    width: '780px',
-                    maxWidth: '100%',
-                    padding: '16px',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-                    borderRadius: '2px',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  <ReportDocumentView record={previewRecord} />
-                </div>
-              )}
-            </div>
+                  {/* Separate View Tabs Bar when PDF is attached */}
+                  {previewAttachment && (
+                    <div style={{ backgroundColor: '#0f172a', padding: '9px 20px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewViewMode('sheet')}
+                          style={{
+                            padding: '6px 16px',
+                            fontSize: '12.5px',
+                            fontWeight: 'bold',
+                            borderRadius: '5px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            backgroundColor: previewViewMode === 'sheet' ? '#0284c7' : '#1e293b',
+                            color: '#ffffff',
+                            transition: 'all 0.2s',
+                            boxShadow: previewViewMode === 'sheet' ? '0 2px 6px rgba(0,0,0,0.3)' : 'none'
+                          }}
+                        >
+                          📝 Inspection Sheet
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewViewMode('pdf')}
+                          style={{
+                            padding: '6px 16px',
+                            fontSize: '12.5px',
+                            fontWeight: 'bold',
+                            borderRadius: '5px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            backgroundColor: previewViewMode === 'pdf' ? '#0284c7' : '#1e293b',
+                            color: '#ffffff',
+                            transition: 'all 0.2s',
+                            boxShadow: previewViewMode === 'pdf' ? '0 2px 6px rgba(0,0,0,0.3)' : 'none'
+                          }}
+                        >
+                          📎 Attached PDF: {previewAttachment.name}
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <a
+                          href={previewAttachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: '#38bdf8',
+                            fontSize: '11.5px',
+                            fontWeight: 'bold',
+                            textDecoration: 'none',
+                            backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            border: '1px solid rgba(56, 189, 248, 0.35)'
+                          }}
+                        >
+                          Open in New Tab ↗
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Modal Body */}
+                  <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#94a3b8' }}>
+                    {previewRecord.pdfUrl && !previewRecord.formData ? (
+                      <div style={{ width: '780px', maxWidth: '100%', height: '700px', backgroundColor: '#fff', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.15)' }}>
+                        <object
+                          data={`${previewRecord.pdfUrl}#toolbar=1&navpanes=1&view=FitH`}
+                          type="application/pdf"
+                          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                        >
+                          <embed
+                            src={`${previewRecord.pdfUrl}#toolbar=1&navpanes=1&view=FitH`}
+                            type="application/pdf"
+                            style={{ width: '100%', height: '100%' }}
+                          />
+                          <iframe
+                            src={previewRecord.pdfUrl}
+                            style={{ width: '100%', height: '100%', border: 'none' }}
+                            title="Uploaded PDF View"
+                          />
+                        </object>
+                      </div>
+                    ) : (
+                      <>
+                        {/* 1. Inspection Sheet View */}
+                        {previewViewMode === 'sheet' && (
+                          <div style={{ width: '780px', maxWidth: '100%' }}>
+                            {previewAttachment && (
+                              <div style={{ marginBottom: '10px', backgroundColor: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '6px', padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#0369a1' }}>
+                                <span>
+                                  📎 <b>Supplementary PDF Attached:</b> {previewAttachment.name} — Switch to <b>"Attached PDF"</b> tab above to view it separately.
+                                </span>
+                                <span style={{ fontSize: '11px', color: '#075985', fontWeight: 'bold' }}>
+                                  (Printing &amp; Downloading will include both attached)
+                                </span>
+                              </div>
+                            )}
+                            <div
+                              ref={previewContentRef}
+                              style={{
+                                backgroundColor: '#ffffff',
+                                width: '100%',
+                                padding: '16px',
+                                boxShadow: '0 4px 15px rgba(0,0,0,0.18)',
+                                borderRadius: '4px',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <ReportDocumentView record={previewRecord} />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 2. Attached Supplementary PDF View */}
+                        {previewViewMode === 'pdf' && previewAttachment && (
+                          <div
+                            style={{
+                              backgroundColor: '#ffffff',
+                              width: '820px',
+                              maxWidth: '100%',
+                              borderRadius: '6px',
+                              boxShadow: '0 4px 18px rgba(0,0,0,0.2)',
+                              border: '1px solid #475569',
+                              overflow: 'hidden',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <div
+                              style={{
+                                backgroundColor: '#1e293b',
+                                color: '#ffffff',
+                                padding: '10px 16px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: '8px'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '16px' }}>📎</span>
+                                <div>
+                                  <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>
+                                    Supplementary Attached PDF Report
+                                  </span>
+                                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                    {previewAttachment.name}
+                                  </span>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <a
+                                  href={previewAttachment.url}
+                                  download={previewAttachment.name}
+                                  style={{
+                                    backgroundColor: '#334155',
+                                    color: '#ffffff',
+                                    textDecoration: 'none',
+                                    fontSize: '11.5px',
+                                    fontWeight: 'bold',
+                                    padding: '4px 10px',
+                                    borderRadius: '4px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                >
+                                  Download Attached PDF ⤓
+                                </a>
+                                <a
+                                  href={previewAttachment.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    backgroundColor: '#0284c7',
+                                    color: '#ffffff',
+                                    textDecoration: 'none',
+                                    fontSize: '11.5px',
+                                    fontWeight: 'bold',
+                                    padding: '4px 10px',
+                                    borderRadius: '4px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                >
+                                  Open in New Tab ↗
+                                </a>
+                              </div>
+                            </div>
+                            <div style={{ height: '750px', minHeight: '600px', width: '100%', backgroundColor: '#525659' }}>
+                              <object
+                                data={`${previewAttachment.url}#toolbar=1&navpanes=1&view=FitH`}
+                                type="application/pdf"
+                                style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                              >
+                                <embed
+                                  src={`${previewAttachment.url}#toolbar=1&navpanes=1&view=FitH`}
+                                  type="application/pdf"
+                                  style={{ width: '100%', height: '100%' }}
+                                />
+                                <iframe
+                                  src={previewAttachment.url}
+                                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                                  title={`Attached PDF - ${previewAttachment.name}`}
+                                />
+                              </object>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
