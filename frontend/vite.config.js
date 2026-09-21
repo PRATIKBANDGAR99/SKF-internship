@@ -12,6 +12,14 @@ export default defineConfig({
     include: /.*\.jsx?$|Frontend\/.*\.js$/,
     exclude: [],
   },
+  server: {
+    port: 3030,
+    host: true,
+  },
+  preview: {
+    port: 3030,
+    host: true,
+  },
   optimizeDeps: {
     esbuildOptions: {
       loader: {

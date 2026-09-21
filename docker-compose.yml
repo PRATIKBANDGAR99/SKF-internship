@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # PostgreSQL Database Service
+  # -------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: skf-postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: skf_inspection_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/schema.sql:/docker-entrypoint-initdb.d/01_init_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d skf_inspection_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - skf-network
+
+  # -------------------------------------------------------------
+  # Python FastAPI Backend Service (Port 8001)
+  # -------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: skf-backend-api
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/skf_inspection_db
+      PORT: 8001
+      HOST: 0.0.0.0
+      CORS_ORIGINS: http://localhost:3030,http://127.0.0.1:3030
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - skf-network
+
+  # -------------------------------------------------------------
+  # React + Vite Frontend (Nginx on Port 3030)
+  # -------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8001
+    container_name: skf-frontend-web
+    restart: unless-stopped
+    ports:
+      - "3030:3030"
+    depends_on:
+      - backend
+    networks:
+      - skf-network
+
+# ---------------------------------------------------------------
+# Persistent Volumes & Networks
+# ---------------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  skf-network:
+    driver: bridge
