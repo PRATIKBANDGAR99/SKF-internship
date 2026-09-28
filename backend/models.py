@@ -1,6 +1,41 @@
-from sqlalchemy import Column, String, Text, DateTime, JSON
+import hashlib
+from sqlalchemy import Column, String, Text, DateTime, JSON, Integer
 from sqlalchemy.sql import func
 from database import Base
+
+def hash_password(password: str) -> str:
+    """Hashes a password with SHA-256 and a dedicated salt."""
+    salt = "skf_secure_salt_2026"
+    return hashlib.sha256((salt + password).encode("utf-8")).hexdigest()
+
+def verify_password(plain_password: str, hashed: str) -> bool:
+    """Verifies plain password against stored hash."""
+    return hash_password(plain_password) == hashed
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    email = Column(String(150), unique=True, index=True, nullable=False)
+    full_name = Column(String(150), nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(50), default="User", nullable=False) # "Admin" or "User"
+    channel = Column(String(100), nullable=True)
+    status = Column(String(50), default="Active", nullable=False) # "Active" or "Disabled"
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "fullName": self.full_name,
+            "role": self.role,
+            "channel": self.channel or "",
+            "status": self.status,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+            "updatedAt": self.updated_at.isoformat() if self.updated_at else None
+        }
 
 class InspectionRecord(Base):
     __tablename__ = "inspection_records"

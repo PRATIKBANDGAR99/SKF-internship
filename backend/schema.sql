@@ -34,3 +34,19 @@ CREATE INDEX IF NOT EXISTS idx_inspection_records_date ON inspection_records(dat
 CREATE INDEX IF NOT EXISTS idx_inspection_records_operation ON inspection_records(operation);
 CREATE INDEX IF NOT EXISTS idx_inspection_records_machine ON inspection_records(machine);
 CREATE INDEX IF NOT EXISTS idx_inspection_records_created_at ON inspection_records(created_at DESC);
+
+-- 3. Create the users table for plant-floor accounts & roles
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    full_name VARCHAR(150) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'User' NOT NULL,
+    channel VARCHAR(100),
+    status VARCHAR(50) DEFAULT 'Active' NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);

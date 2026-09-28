@@ -4,8 +4,11 @@ import skfLogo from './skf-logo.jpg';
 import { 
   fetchInspectionRecords, 
   saveInspectionRecord, 
+  deleteInspectionRecord,
   uploadPdfToServer 
 } from './apiClient';
+import LoginPage from './LoginPage';
+import UsersDashboard from './UsersDashboard';
 
 const CloudIcon = ({ size = 15, color = "currentColor", style = {} }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', ...style }}>
@@ -4191,7 +4194,19 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
   );
 }
 
-function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSaved, showAppAlert, attachedPdf, onClearAttachedPdf, onPreviewForm, onUploadPdf }) {
+function FormTRB02Machine1374({
+  selectedFormKey,
+  filters,
+  setRecords,
+  onRecordSaved,
+  showAppAlert,
+  attachedPdf,
+  onClearAttachedPdf,
+  onPreviewForm,
+  onUploadPdf,
+  editingRecord,
+  onCancelEdit
+}) {
   const printRef = useRef();
 
   const initialRing = getRingSectionFromFormKey(selectedFormKey, filters?.ringSection || '');
@@ -4222,7 +4237,20 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
 
   const [tableData, setTableData] = useState(() => getTableDataForForm(selectedFormKey, initialMeta?.operation || '', initialRing));
 
+  // If editing an existing record, prefill form data and table data
   useEffect(() => {
+    if (editingRecord) {
+      if (editingRecord.formData) {
+        setFormData({ ...editingRecord.formData });
+      }
+      if (editingRecord.tableData) {
+        setTableData(JSON.parse(JSON.stringify(editingRecord.tableData)));
+      }
+    }
+  }, [editingRecord]);
+
+  useEffect(() => {
+    if (editingRecord) return; // do not override if in edit mode
     const meta = FORM_METADATA[selectedFormKey];
     const computedRing = getRingSectionFromFormKey(selectedFormKey, filters.ringSection || '');
     if (meta) {
@@ -4241,9 +4269,10 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       }));
       setTableData(getTableDataForForm('', '', filters.ringSection));
     }
-  }, [selectedFormKey]);
+  }, [selectedFormKey, editingRecord]);
 
   useEffect(() => {
+    if (editingRecord) return; // do not override if in edit mode
     const computedRing = getRingSectionFromFormKey(selectedFormKey, filters.ringSection || '');
     setFormData((prev) => ({
       ...prev,
@@ -4257,12 +4286,12 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       const meta = FORM_METADATA[selectedFormKey];
       setTableData(getTableDataForForm(selectedFormKey, meta?.operation || '', computedRing || filters.ringSection));
     }
-  }, [filters]);
+  }, [filters, editingRecord]);
 
   const handlePreviewCurrentForm = () => {
     const finalFormattedDate = formatDateToDDMMYY(formData.date);
     const tempRec = {
-      id: 'PREVIEW-DRAFT',
+      id: editingRecord?.id || 'PREVIEW-DRAFT',
       date: finalFormattedDate || new Date().toISOString().split('T')[0],
       section: filters.section || 'TRB',
       channel: formData.channelNo,
@@ -4299,7 +4328,7 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
   };
 
   const handleSubmit = async () => {
-    const newRecId = `REC-${Math.floor(100 + Math.random() * 900)}`;
+    const newRecId = editingRecord?.id || `REC-${Math.floor(100 + Math.random() * 900)}`;
 
     let serverAttachmentUrl = null;
     if (attachedPdf?.file) {
@@ -4348,7 +4377,8 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
     };
 
     setRecords((prev) => {
-      const updated = [newRec, ...prev];
+      const filtered = prev.filter((r) => r.id !== newRecId);
+      const updated = [newRec, ...filtered];
       try {
         localStorage.setItem('skf_saved_records', JSON.stringify(updated.slice(0, 50)));
       } catch (e) {
@@ -4363,10 +4393,13 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
         await onRecordSaved();
       }
       alert(
-        attachedPdf
-          ? `Inspection Form Saved & Synced with attached PDF (${attachedPdf.name})! Check "View Reports" tab to preview or download the concatenated PDF.`
+        editingRecord
+          ? `Inspection Form ${editingRecord.id} updated successfully in PostgreSQL!`
+          : attachedPdf
+          ? `Inspection Form Saved & Synced with attached PDF (${attachedPdf.name})! Check "View Reports" tab.`
           : 'Inspection Form Saved & Synced to Database! Check "View Reports" tab.'
       );
+      if (editingRecord && onCancelEdit) onCancelEdit();
       if (onClearAttachedPdf) onClearAttachedPdf();
       return;
     } catch (err) {
@@ -4377,35 +4410,129 @@ function FormTRB02Machine1374({ selectedFormKey, filters, setRecords, onRecordSa
       await onRecordSaved();
     }
     alert(
-      attachedPdf
-        ? `Inspection Form Saved Locally with attached PDF (${attachedPdf.name})! Check "View Reports" tab to preview or download the concatenated PDF.`
+      editingRecord
+        ? `Inspection Form ${editingRecord.id} updated locally.`
+        : attachedPdf
+        ? `Inspection Form Saved Locally with attached PDF (${attachedPdf.name})! Check "View Reports" tab.`
         : 'Inspection Form Saved Successfully! Go to "View Reports" to Preview, Print, or Download PDF.'
     );
+    if (editingRecord && onCancelEdit) onCancelEdit();
     if (onClearAttachedPdf) onClearAttachedPdf();
   };
 
   return (
-    <InspectionTemplate
-      printRef={printRef}
-      formData={formData}
-      setFormData={setFormData}
-      tableData={tableData}
-      setTableData={setTableData}
-      onSubmit={handleSubmit}
-      onPreview={handlePreviewCurrentForm}
-      onAttachmentChange={onUploadPdf}
-      attachedPdfName={attachedPdf?.name || ''}
-    />
+    <div>
+      {editingRecord && (
+        <div
+          style={{
+            backgroundColor: '#e0f2fe',
+            border: '1px solid #7dd3fc',
+            borderRadius: '6px',
+            padding: '10px 16px',
+            marginBottom: '16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}
+        >
+          <div>
+            <span style={{ fontWeight: 'bold', color: '#0369a1', fontSize: '14px' }}>
+              ✏️ Editing Inspection Report: {editingRecord.id}
+            </span>
+            <span style={{ fontSize: '12.5px', color: '#0284c7', marginLeft: '12px' }}>
+              Modify measurements or details below and click Submit to update database.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            style={{
+              backgroundColor: '#ffffff',
+              color: '#0369a1',
+              border: '1px solid #7dd3fc',
+              borderRadius: '4px',
+              padding: '5px 12px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            ✕ Cancel Edit
+          </button>
+        </div>
+      )}
+      <InspectionTemplate
+        printRef={printRef}
+        formData={formData}
+        setFormData={setFormData}
+        tableData={tableData}
+        setTableData={setTableData}
+        onSubmit={handleSubmit}
+        onPreview={handlePreviewCurrentForm}
+        onAttachmentChange={onUploadPdf}
+        attachedPdfName={attachedPdf?.name || ''}
+      />
+    </div>
   );
 }
+
+// ==========================================
+// SEGREGATION MAPPINGS FOR CHANNELS & SHEETS
+// ==========================================
+const SECTION_CHANNELS = {
+  TRB: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T11'],
+  DGBB: ['CH2', 'CH3', 'CH4', 'CH5', 'CH8', 'CH12', 'CH13']
+};
+
+const normalizeRingSection = (val) => {
+  if (!val) return '';
+  const u = String(val).trim().toUpperCase();
+  if (u.includes('INNER')) return 'INNER RING';
+  if (u.includes('OUTER')) return 'Outer Ring';
+  if (u.includes('ASSEMBLY')) return 'Assembly';
+  return val;
+};
+
+const SHEETS_BY_RING = {
+  'INNER RING': [
+    { key: 'SKF/QA/TRB/02', label: 'SKF/QA/TRB/02 - Track Grinding (Inner Ring)' },
+    { key: 'SKF/QA/TRB/03-1', label: 'SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (1)' },
+    { key: 'SKF/QA/TRB/03-2', label: 'SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (2)' },
+    { key: 'SKF/QA/TRB/04', label: 'SKF/QA/TRB/04 - Flange Grinding (Inner Ring)' },
+    { key: 'SKF/QA/TRB/05', label: 'SKF/QA/TRB/05 - Track Honning (Inner Ring)' },
+    { key: 'SKF/QA/TRB/08-1', label: 'SKF/QA/TRB/08 - Marking (Inner Ring)' }
+  ],
+  'Outer Ring': [
+    { key: 'SKF/QA/TRB/06-1', label: 'SKF/QA/TRB/06 - Track Grinding (1) (Outer Ring)' },
+    { key: 'SKF/QA/TRB/06-2', label: 'SKF/QA/TRB/06 - Track Grinding (2) (Outer Ring)' },
+    { key: 'SKF/QA/TRB/07-1', label: 'SKF/QA/TRB/07 - Track Honning (1) (Outer Ring)' },
+    { key: 'SKF/QA/TRB/07-2', label: 'SKF/QA/TRB/07 - Track Honning (2) (Outer Ring)' },
+    { key: 'SKF/QA/TRB/08', label: 'SKF/QA/TRB/08 - Marking (Outer Ring)' }
+  ],
+  'Assembly': [
+    { key: 'SKF/QA/TRB/09', label: 'SKF/QA/TRB/09 - Assembly Off Inspection(1) (Assembly)' },
+    { key: 'SKF/QA/TRB/17', label: 'SKF/QA/TRB/17 - Assembly of Quality Equipment (2) (Assembly)' }
+  ]
+};
 
 // ==========================================
 // 3. MAIN EXPORT COMPONENT
 // ==========================================
 
 export default function SKFQualityApp() {
-  const [activeTab, setActiveTab] = useState('entry');
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('skf_current_user');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Error reading current user from localStorage:', e);
+    }
+    return null;
+  });
+  const [activeTab, setActiveTab] = useState('entry'); // 'entry' | 'report' | 'users'
   const [selectedForm, setSelectedForm] = useState('');
+  const [editingRecord, setEditingRecord] = useState(null);
 
   const [filterInputs, setFilterInputs] = useState({
     recordId: '',
@@ -4452,6 +4579,62 @@ export default function SKFQualityApp() {
   const [attachedPdf, setAttachedPdf] = useState(null);
   const pdfDownloadContainerRef = useRef(null);
   const previewContentRef = useRef(null);
+
+  const handleLogout = () => {
+    localStorage.removeItem('skf_current_user');
+    setCurrentUser(null);
+    setActiveTab('entry');
+    setEditingRecord(null);
+  };
+
+  const handleEditRecord = (rec) => {
+    setEditingRecord(rec);
+    if (rec.formatNo) {
+      setSelectedForm(rec.formatNo);
+    }
+    setFilterInputs({
+      recordId: rec.id || '',
+      operation: rec.operation || '',
+      date: rec.date || '',
+      section: rec.section || 'TRB',
+      channel: rec.channel || '',
+      ringSection: rec.ringSection || '',
+      machine: rec.machine || '',
+      shift: rec.shift || ''
+    });
+    setAppliedFilters({
+      recordId: rec.id || '',
+      operation: rec.operation || '',
+      date: rec.date || '',
+      section: rec.section || 'TRB',
+      channel: rec.channel || '',
+      ringSection: rec.ringSection || '',
+      machine: rec.machine || '',
+      shift: rec.shift || ''
+    });
+    setActiveTab('entry');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteRecord = async (rec) => {
+    const confirmDel = window.confirm(`Are you sure you want to permanently delete inspection report "${rec.id}"? This action cannot be undone.`);
+    if (!confirmDel) return;
+
+    try {
+      await deleteInspectionRecord(rec.id);
+      setRecords((prev) => {
+        const updated = prev.filter((r) => r.id !== rec.id);
+        try {
+          localStorage.setItem('skf_saved_records', JSON.stringify(updated.slice(0, 50)));
+        } catch (e) {}
+        return updated;
+      });
+      alert(`Inspection report ${rec.id} has been deleted successfully.`);
+    } catch (err) {
+      console.error('Failed to delete inspection report:', err);
+      alert(`Error deleting record: ${err.message || 'Database error'}`);
+    }
+  };
 
   const loadRecordsFromCloud = async () => {
     setIsCloudSyncing(true);
@@ -4543,7 +4726,37 @@ export default function SKFQualityApp() {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilterInputs((prev) => ({ ...prev, [name]: value }));
+    setFilterInputs((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'section') {
+        const allowedChannels = SECTION_CHANNELS[value] || [];
+        if (next.channel && !allowedChannels.includes(next.channel)) {
+          next.channel = '';
+        }
+      }
+      if (name === 'ringSection') {
+        const normalized = normalizeRingSection(value);
+        const allowedSheets = SHEETS_BY_RING[normalized] || [];
+        if (selectedForm && !allowedSheets.some((s) => s.key === selectedForm)) {
+          setSelectedForm('');
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleSheetSelect = (e) => {
+    const formKey = e.target.value;
+    setSelectedForm(formKey);
+    if (formKey) {
+      for (const [ring, sheets] of Object.entries(SHEETS_BY_RING)) {
+        if (sheets.some((s) => s.key === formKey)) {
+          setFilterInputs((prev) => ({ ...prev, ringSection: ring }));
+          setAppliedFilters((prev) => ({ ...prev, ringSection: ring }));
+          break;
+        }
+      }
+    }
   };
 
   const handleApplyFilters = () => {
@@ -4774,6 +4987,10 @@ export default function SKFQualityApp() {
     color: '#000'
   };
 
+  if (!currentUser) {
+    return <LoginPage onLoginSuccess={(u) => setCurrentUser(u)} />;
+  }
+
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '15px', backgroundColor: '#f4f6f8', minHeight: '100vh' }}>
       {/* Header Bar */}
@@ -4799,15 +5016,15 @@ export default function SKFQualityApp() {
           </span>
         </div>
 
-        {/* Right: Navigation Buttons */}
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'flex-end', minWidth: '160px' }}>
+        {/* Right: Navigation Buttons & User Profile */}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={() => setActiveTab('entry')}
             style={{
-              padding: '9px 20px',
+              padding: '8px 18px',
               fontWeight: 'bold',
-              fontSize: '13.5px',
+              fontSize: '13px',
               border: activeTab === 'entry' ? '1.5px solid #38bdf8' : '1px solid rgba(255,255,255,0.2)',
               borderRadius: '6px',
               cursor: 'pointer',
@@ -4825,9 +5042,9 @@ export default function SKFQualityApp() {
             type="button"
             onClick={handleViewReportsClick}
             style={{
-              padding: '9px 20px',
+              padding: '8px 18px',
               fontWeight: 'bold',
-              fontSize: '13.5px',
+              fontSize: '13px',
               border: activeTab === 'report' ? '1.5px solid #38bdf8' : '1px solid rgba(255,255,255,0.2)',
               borderRadius: '6px',
               cursor: 'pointer',
@@ -4839,228 +5056,314 @@ export default function SKFQualityApp() {
               alignItems: 'center'
             }}
           >
-            View Reports
+            View Report
           </button>
+          {currentUser?.role === 'Admin' && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('users')}
+              style={{
+                padding: '8px 18px',
+                fontWeight: 'bold',
+                fontSize: '13px',
+                border: activeTab === 'users' ? '1.5px solid #38bdf8' : '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                backgroundColor: activeTab === 'users' ? '#005a9c' : 'rgba(255,255,255,0.1)',
+                color: '#ffffff',
+                boxShadow: activeTab === 'users' ? '0 2px 6px rgba(0,0,0,0.25)' : 'none',
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              <span>👥</span> Users
+            </button>
+          )}
+          <span
+            style={{
+              fontSize: '12.5px',
+              color: '#93c5fd',
+              padding: '0 8px',
+              fontWeight: '500',
+              borderLeft: '1px solid rgba(255,255,255,0.2)',
+              borderRight: '1px solid rgba(255,255,255,0.2)'
+            }}
+            title="Current User Email"
+          >
+            {currentUser?.email}
+          </span>
+          <button
+            type="button"
+            onClick={handleLogout}
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              color: '#ffffff',
+              backgroundColor: '#b91c1c',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+            }}
+            title="Sign out of system"
+          >
+            Logout
+          </button>
+          <span
+            style={{
+              backgroundColor: currentUser?.role === 'Admin' ? '#f59e0b' : '#38bdf8',
+              color: currentUser?.role === 'Admin' ? '#78350f' : '#0c4a6e',
+              padding: '5px 12px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              display: 'inline-flex',
+              alignItems: 'center',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.15)'
+            }}
+          >
+            {currentUser?.role === 'Admin' ? 'ADMIN' : 'USER'}
+          </span>
         </div>
       </div>
 
-      {/* Data Entry & Reports Section */}
-      <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #dcdcdc', marginBottom: '15px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <h3 style={{ margin: '0 0 16px 0', color: '#002b49', fontSize: '18px', fontWeight: 'bold' }}>
-          {activeTab === 'entry' ? 'Data Entry & Reports' : 'Search Reports'}
-        </h3>
+      {/* When activeTab is 'users', show UsersDashboard directly */}
+      {activeTab === 'users' ? (
+        <UsersDashboard currentUser={currentUser} />
+      ) : (
+        <>
+          {/* Data Entry & Reports Filter Section */}
+          <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #dcdcdc', marginBottom: '15px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ margin: '0 0 16px 0', color: '#002b49', fontSize: '18px', fontWeight: 'bold' }}>
+              {activeTab === 'entry' ? 'Data Entry & Reports' : 'Search Reports'}
+            </h3>
 
-        {/* Top Filters Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: activeTab === 'entry' ? 'repeat(5, 1fr)' : 'repeat(auto-fit, minmax(140px, 1fr))', gap: '15px 20px', alignItems: 'start' }}>
-          {activeTab === 'report' && (
-            <div>
-              <label style={labelStyle}>Record ID:</label>
-              <input
-                type="text"
-                name="recordId"
-                placeholder="e.g. REC-868"
-                value={filterInputs.recordId}
-                onChange={handleFilterChange}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleApplyFilters(); }}
-                style={selectStyle}
-              />
-            </div>
-          )}
-          {activeTab === 'report' && (
-            <div>
-              <label style={labelStyle}>Operation:</label>
-              <select name="operation" value={filterInputs.operation} onChange={handleFilterChange} style={selectStyle}>
-                <option value="">All Operations</option>
-                <option value="TRACK GRINDING">Track Grinding</option>
-                <option value="BORE GRINDING">Bore Grinding</option>
-                <option value="FLANGE GRINDING">Flange Grinding</option>
-                <option value="TRACK HONNING">Track Honing</option>
-                <option value="MARKING">Marking</option>
-                <option value="ASSEMBLY">Assembly</option>
-                <option value="QUALITY EQUIPMENTS">Quality Equipments</option>
-              </select>
-            </div>
-          )}
-          <div>
-            <label style={labelStyle}>Date:</label>
-            <input type="date" name="date" value={filterInputs.date} onChange={handleFilterChange} onKeyDown={(e) => { if (e.key === 'Enter') handleApplyFilters(); }} style={{ ...selectStyle, padding: '5px 10px' }} />
-          </div>
-          <div>
-            <label style={labelStyle}>Section (DGBB/TRB):</label>
-            <select name="section" value={filterInputs.section} onChange={handleFilterChange} style={selectStyle}>
-              <option value="">Choose an option</option>
-              <option value="TRB">TRB</option>
-              <option value="DGBB">DGBB</option>
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>Channel:</label>
-            <select name="channel" value={filterInputs.channel} onChange={handleFilterChange} style={selectStyle}>
-              <option value="">Choose an option</option>
-              <option value="T1">T1</option>
-              <option value="T2">T2</option>
-              <option value="T3">T3</option>
-              <option value="T4">T4</option>
-              <option value="T5">T5</option>
-              <option value="T6">T6</option>
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>Ring Section:</label>
-            <select name="ringSection" value={filterInputs.ringSection} onChange={handleFilterChange} style={selectStyle}>
-              <option value="">Choose an option</option>
-              <option value="INNER RING">Inner Ring</option>
-              <option value="Outer Ring">Outer Ring</option>
-              <option value="Assembly">Assembly</option>
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>Machine No.:</label>
-            <input
-              type="text"
-              name="machine"
-              placeholder="Enter Your Machine No"
-              value={filterInputs.machine}
-              onChange={handleFilterChange}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleApplyFilters(); }}
-              style={selectStyle}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Shift:</label>
-            <select name="shift" value={filterInputs.shift} onChange={handleFilterChange} style={selectStyle}>
-              <option value="">Choose an option</option>
-              <option value="I">I Shift</option>
-              <option value="II">II Shift</option>
-              <option value="III">III Shift</option>
-            </select>
-          </div>
-
-          {activeTab === 'entry' && (
-            <div style={{ gridColumn: 'span 2' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <label style={{ ...labelStyle, color: '#004080', margin: 0 }}>Upload PDF Report (Attachment):</label>
-                {attachedPdf && (
-                  <button
-                    type="button"
-                    onClick={() => setAttachedPdf(null)}
-                    style={{ fontSize: '11px', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                  >
-                    Remove attached
-                  </button>
-                )}
-              </div>
-              <input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ fontSize: '13px', border: 'none', padding: '2px 0' }} />
-              {attachedPdf && (
-                <div style={{ fontSize: '11.5px', color: '#15803d', fontWeight: 'bold', marginTop: '4px', backgroundColor: '#dcfce7', padding: '3px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                  📎 {attachedPdf.name} ({attachedPdf.size || 'PDF'})
+            {/* Top Filters Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: activeTab === 'entry' ? 'repeat(5, 1fr)' : 'repeat(auto-fit, minmax(140px, 1fr))', gap: '15px 20px', alignItems: 'start' }}>
+              {activeTab === 'report' && (
+                <div>
+                  <label style={labelStyle}>Record ID:</label>
+                  <input
+                    type="text"
+                    name="recordId"
+                    placeholder="e.g. REC-868"
+                    value={filterInputs.recordId}
+                    onChange={handleFilterChange}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleApplyFilters(); }}
+                    style={selectStyle}
+                  />
                 </div>
               )}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '6px' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={handleApplyFilters}
-                style={{
-                  padding: '7px 20px',
-                  backgroundColor: '#005a9c',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontWeight: 'bold',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                  height: '34px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'background-color 0.2s',
-                  whiteSpace: 'nowrap'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#004070'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#005a9c'}
-              >
-                {activeTab === 'entry' ? 'Fill Report' : 'Search Report'}
-              </button>
               {activeTab === 'report' && (
-                <button
-                  type="button"
-                  onClick={handleClearFilters}
-                  style={{
-                    padding: '7px 12px',
-                    backgroundColor: '#f1f5f9',
-                    color: '#475569',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '6px',
-                    fontWeight: 'bold',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    height: '34px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s',
-                    whiteSpace: 'nowrap'
-                  }}
-                  title="Reset search filters"
-                >
-                  Clear
-                </button>
+                <div>
+                  <label style={labelStyle}>Operation:</label>
+                  <select name="operation" value={filterInputs.operation} onChange={handleFilterChange} style={selectStyle}>
+                    <option value="">All Operations</option>
+                    <option value="TRACK GRINDING">Track Grinding</option>
+                    <option value="BORE GRINDING">Bore Grinding</option>
+                    <option value="FLANGE GRINDING">Flange Grinding</option>
+                    <option value="TRACK HONNING">Track Honing</option>
+                    <option value="MARKING">Marking</option>
+                    <option value="ASSEMBLY">Assembly</option>
+                    <option value="QUALITY EQUIPMENTS">Quality Equipments</option>
+                  </select>
+                </div>
               )}
+              <div>
+                <label style={labelStyle}>Date:</label>
+                <input type="date" name="date" value={filterInputs.date} onChange={handleFilterChange} onKeyDown={(e) => { if (e.key === 'Enter') handleApplyFilters(); }} style={{ ...selectStyle, padding: '5px 10px' }} />
+              </div>
+              <div>
+                <label style={labelStyle}>Section (DGBB/TRB):</label>
+                <select name="section" value={filterInputs.section} onChange={handleFilterChange} style={selectStyle}>
+                  <option value="">Choose an option</option>
+                  <option value="TRB">TRB</option>
+                  <option value="DGBB">DGBB</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Channel:</label>
+                <select name="channel" value={filterInputs.channel} onChange={handleFilterChange} style={selectStyle}>
+                  <option value="">Choose an option</option>
+                  {(() => {
+                    const channelList = SECTION_CHANNELS[filterInputs.section] || [
+                      'T11', 'T3', 'T4', 'T5', 'T6', 'T1', 'T2',
+                      'CH2', 'CH3', 'CH4', 'CH5', 'CH8', 'CH12', 'CH13'
+                    ];
+                    return channelList.map((ch) => (
+                      <option key={ch} value={ch}>{ch}</option>
+                    ));
+                  })()}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Ring Section:</label>
+                <select name="ringSection" value={filterInputs.ringSection} onChange={handleFilterChange} style={selectStyle}>
+                  <option value="">Choose an option</option>
+                  <option value="INNER RING">Inner Ring</option>
+                  <option value="Outer Ring">Outer Ring</option>
+                  <option value="Assembly">Assembly</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Machine No.:</label>
+                <input
+                  type="text"
+                  name="machine"
+                  placeholder="Enter Your Machine No"
+                  value={filterInputs.machine}
+                  onChange={handleFilterChange}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleApplyFilters(); }}
+                  style={selectStyle}
+                />
+              </div>
+
+              <div>
+                <label style={labelStyle}>Shift:</label>
+                <select name="shift" value={filterInputs.shift} onChange={handleFilterChange} style={selectStyle}>
+                  <option value="">Choose an option</option>
+                  <option value="I">I Shift</option>
+                  <option value="II">II Shift</option>
+                  <option value="III">III Shift</option>
+                </select>
+              </div>
+
+              {activeTab === 'entry' && (
+                <div style={{ gridColumn: 'span 2' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <label style={{ ...labelStyle, color: '#004080', margin: 0 }}>Upload PDF Report (Attachment):</label>
+                    {attachedPdf && (
+                      <button
+                        type="button"
+                        onClick={() => setAttachedPdf(null)}
+                        style={{ fontSize: '11px', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        Remove attached
+                      </button>
+                    )}
+                  </div>
+                  <input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ fontSize: '13px', border: 'none', padding: '2px 0' }} />
+                  {attachedPdf && (
+                    <div style={{ fontSize: '11.5px', color: '#15803d', fontWeight: 'bold', marginTop: '4px', backgroundColor: '#dcfce7', padding: '3px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                      📎 {attachedPdf.name} ({attachedPdf.size || 'PDF'})
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '6px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={handleApplyFilters}
+                    style={{
+                      padding: '7px 20px',
+                      backgroundColor: '#005a9c',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontWeight: 'bold',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                      height: '34px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'background-color 0.2s',
+                      whiteSpace: 'nowrap'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#004070'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#005a9c'}
+                  >
+                    {activeTab === 'entry' ? 'Fill Report' : 'Search Report'}
+                  </button>
+                  {activeTab === 'report' && (
+                    <button
+                      type="button"
+                      onClick={handleClearFilters}
+                      style={{
+                        padding: '7px 12px',
+                        backgroundColor: '#f1f5f9',
+                        color: '#475569',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '6px',
+                        fontWeight: 'bold',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        height: '34px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title="Reset search filters"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Embedded Select Inspection Sheet Section */}
-        {activeTab === 'entry' && (
-          <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #e5e7eb', display: 'flex', alignItems: 'center' }}>
-            <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#000', marginRight: '15px' }}>
-              Select Inspection Sheet
-            </span>
-            <select
-              value={selectedForm}
-              onChange={(e) => setSelectedForm(e.target.value)}
-              style={{ padding: '7px 12px', borderRadius: '6px', border: '1.5px solid #005a9c', fontSize: '14px', minWidth: '320px', fontWeight: '500', outline: 'none', backgroundColor: '#fff', color: '#000' }}
-            >
-              <option value="">Choose an option</option>
-              <option value="SKF/QA/TRB/02">SKF/QA/TRB/02 - Track Grinding (Inner Ring)</option>
-              <option value="SKF/QA/TRB/03-1">SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (1)</option>
-              <option value="SKF/QA/TRB/03-2">SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (2)</option>
-              <option value="SKF/QA/TRB/04">SKF/QA/TRB/04 - Flange Grinding (Inner Ring)</option>
-              <option value="SKF/QA/TRB/05">SKF/QA/TRB/05 - Track Honning (Inner Ring)</option>
-              <option value="SKF/QA/TRB/08-1">SKF/QA/TRB/08 - Marking (Inner Ring)</option>
-              <option value="SKF/QA/TRB/06-1">SKF/QA/TRB/06 - Track Grinding (1) (Outer Ring)</option>
-              <option value="SKF/QA/TRB/06-2">SKF/QA/TRB/06 - Track Grinding (2) (Outer Ring)</option>
-              <option value="SKF/QA/TRB/07-1">SKF/QA/TRB/07 - Track Honning (1) (Outer Ring)</option>
-              <option value="SKF/QA/TRB/07-2">SKF/QA/TRB/07 - Track Honning (2) (Outer Ring)</option>
-              <option value="SKF/QA/TRB/08">SKF/QA/TRB/08 - Marking (Outer Ring)</option>
-              <option value="SKF/QA/TRB/09">SKF/QA/TRB/09 - Assembly Off Inspection(1) (Assembly)</option>
-              <option value="SKF/QA/TRB/17">SKF/QA/TRB/17 - Assembly of Quality Equipment (2) (Assembly)</option>
-            </select>
+            {/* Embedded Select Inspection Sheet Section */}
+            {activeTab === 'entry' && (
+              <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#000', marginRight: '10px' }}>
+                  Select Inspection Sheet
+                </span>
+                <select
+                  value={selectedForm}
+                  onChange={handleSheetSelect}
+                  style={{ padding: '7px 12px', borderRadius: '6px', border: '1.5px solid #005a9c', fontSize: '14px', minWidth: '340px', fontWeight: '500', outline: 'none', backgroundColor: '#fff', color: '#000' }}
+                >
+                  <option value="">Choose an option</option>
+                  {(() => {
+                    const normalized = normalizeRingSection(filterInputs.ringSection);
+                    const sheetsList = normalized && SHEETS_BY_RING[normalized]
+                      ? SHEETS_BY_RING[normalized]
+                      : Object.values(SHEETS_BY_RING).flat();
+                    return sheetsList.map((item) => (
+                      <option key={item.key} value={item.key}>{item.label}</option>
+                    ));
+                  })()}
+                </select>
+                {filterInputs.ringSection && (
+                  <span style={{ fontSize: '12px', color: '#0369a1', backgroundColor: '#e0f2fe', padding: '4px 10px', borderRadius: '4px', fontWeight: 'bold' }}>
+                    Showing {filterInputs.ringSection} sheets only ({(() => {
+                      const norm = normalizeRingSection(filterInputs.ringSection);
+                      return (SHEETS_BY_RING[norm] || []).length;
+                    })()} available)
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {activeTab === 'entry' ? (
-        <div style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <FormTRB02Machine1374
-            selectedFormKey={selectedForm}
-            filters={appliedFilters}
-            setRecords={setRecords}
-            onRecordSaved={loadRecordsFromCloud}
-            attachedPdf={attachedPdf}
-            onClearAttachedPdf={() => setAttachedPdf(null)}
-            onPreviewForm={handlePreviewRecord}
-            onUploadPdf={handleFileUpload}
-          />
-        </div>
-      ) : (
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          {activeTab === 'entry' ? (
+            <div style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+              <FormTRB02Machine1374
+                selectedFormKey={selectedForm}
+                filters={appliedFilters}
+                setRecords={setRecords}
+                onRecordSaved={loadRecordsFromCloud}
+                attachedPdf={attachedPdf}
+                onClearAttachedPdf={() => setAttachedPdf(null)}
+                onPreviewForm={handlePreviewRecord}
+                onUploadPdf={handleFileUpload}
+                editingRecord={editingRecord}
+                onCancelEdit={() => setEditingRecord(null)}
+              />
+            </div>
+          ) : (
+            <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
             <h3 style={{ margin: 0, color: '#002b49', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ReportIcon size={20} color="#002b49" />
@@ -5132,6 +5435,11 @@ export default function SKFQualityApp() {
                 <th style={{ padding: '8px' }}>Released</th>
                 <th style={{ padding: '8px', textAlign: 'center' }}>Print &amp; Preview</th>
                 <th style={{ padding: '8px', textAlign: 'center' }}>Download PDF</th>
+                {currentUser?.role === 'Admin' && (
+                  <th style={{ padding: '8px', textAlign: 'center', backgroundColor: '#fef3c7', color: '#92400e' }}>
+                    Admin Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -5233,12 +5541,51 @@ export default function SKFQualityApp() {
                           <DownloadIcon size={13} color="#ffffff" /> Download PDF
                         </button>
                       </td>
+                      {currentUser?.role === 'Admin' && (
+                        <td style={{ padding: '8px', textAlign: 'center', whiteSpace: 'nowrap', backgroundColor: '#fffbeb' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleEditRecord(rec)}
+                            style={{
+                              backgroundColor: '#0284c7',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '5px 10px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              fontSize: '12px',
+                              marginRight: '6px'
+                            }}
+                            title="Edit this record in Data Entry"
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRecord(rec)}
+                            style={{
+                              backgroundColor: '#dc2626',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '5px 10px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              fontSize: '12px'
+                            }}
+                            title="Permanently delete this record"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan="14" style={{ padding: '36px 20px', textAlign: 'center', backgroundColor: '#f8fafc' }}>
+                  <td colSpan={currentUser?.role === 'Admin' ? 15 : 14} style={{ padding: '36px 20px', textAlign: 'center', backgroundColor: '#f8fafc' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                       <DocumentIcon size={34} color="#64748b" />
                       <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#1e293b' }}>
@@ -5295,6 +5642,8 @@ export default function SKFQualityApp() {
           </table>
         </div>
       )}
+      </>
+    )}
 
       {/* Preview Modal */}
       {previewRecord && (

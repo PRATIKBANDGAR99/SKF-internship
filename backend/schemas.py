@@ -33,3 +33,36 @@ class FileUploadResponse(BaseModel):
     url: str
     name: str
     size: Optional[str] = None
+
+# User Management Schemas
+class UserCreateSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    email: str
+    fullName: str
+    password: str
+    role: Optional[str] = "User" # "Admin" or "User"
+    channel: Optional[str] = ""
+
+class UserUpdateSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    email: Optional[str] = None
+    fullName: Optional[str] = None
+    role: Optional[str] = None
+    channel: Optional[str] = None
+    status: Optional[str] = None
+
+class UserPasswordUpdateSchema(BaseModel):
+    password: str
+
+class UserStatusUpdateSchema(BaseModel):
+    status: str # "Active" or "Disabled"
+
+class LoginRequestSchema(BaseModel):
+    email: str
+    password: str
+
+class LoginResponseSchema(BaseModel):
+    token: str
+    user: Dict[str, Any]

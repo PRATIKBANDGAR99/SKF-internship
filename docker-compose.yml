@@ -40,7 +40,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/skf_inspection_db
       PORT: 8001
       HOST: 0.0.0.0
-      CORS_ORIGINS: http://localhost:3030,http://127.0.0.1:3030
+      CORS_ORIGINS: http://localhost:3040,http://127.0.0.1:3040
     volumes:
       - ./backend/uploads:/app/uploads
     depends_on:
@@ -50,7 +50,7 @@ services:
       - skf-network
 
   # -------------------------------------------------------------
-  # React + Vite Frontend (Nginx on Port 3030)
+  # React + Vite Frontend (Nginx on Port 3040)
   # -------------------------------------------------------------
   frontend:
     build:
@@ -61,7 +61,7 @@ services:
     container_name: skf-frontend-web
     restart: unless-stopped
     ports:
-      - "3030:3030"
+      - "3040:3040"
     depends_on:
       - backend
     networks:

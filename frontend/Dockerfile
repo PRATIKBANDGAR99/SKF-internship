@@ -20,22 +20,22 @@ COPY . .
 RUN npm run build
 
 # =========================================================
-# Stage 2: Serve with Nginx on Port 3030
+# Stage 2: Serve with Nginx on Port 3040
 # =========================================================
 FROM nginx:alpine
 
-# Copy custom Nginx configuration for port 3030
+# Copy custom Nginx configuration for port 3040
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy compiled production assets from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Expose frontend port
-EXPOSE 3030
+EXPOSE 3040
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://localhost:3030/ || exit 1
+    CMD wget --quiet --tries=1 --spider http://localhost:3040/ || exit 1
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]

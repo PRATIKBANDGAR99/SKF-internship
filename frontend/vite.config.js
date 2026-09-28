@@ -13,11 +13,11 @@ export default defineConfig({
     exclude: [],
   },
   server: {
-    port: 3030,
+    port: 3040,
     host: true,
   },
   preview: {
-    port: 3030,
+    port: 3040,
     host: true,
   },
   optimizeDeps: {

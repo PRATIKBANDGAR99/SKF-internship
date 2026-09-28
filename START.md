@@ -8,10 +8,20 @@ This document contains all the commands to run the **SKF Quality Assurance Porta
 
 | Service | Port | Local URL | Description |
 | :--- | :--- | :--- | :--- |
-| **Frontend Web Portal** | `3030` | **[http://localhost:3030](http://localhost:3030)** | React + Vite UI Application |
+| **Frontend Web Portal** | `3040` | **[http://localhost:3040](http://localhost:3040)** | React + Vite UI Application |
 | **Backend REST API** | `8001` | **[http://localhost:8001](http://localhost:8001)** | FastAPI Python Backend |
 | **API Swagger Docs** | `8001` | **[http://localhost:8001/docs](http://localhost:8001/docs)** | Interactive API Documentation |
 | **PostgreSQL Database**| `5432` | `localhost:5432` | Database (`skf_inspection_db`) |
+
+---
+
+## 🔐 Default Login Credentials
+
+| Role | Email | Password | Permissions |
+| :--- | :--- | :--- | :--- |
+| **Admin** | `admin@skf.com` | `admin123` | Full Access: Data Entry, View Reports, CRUD Edit/Delete records, Users Dashboard (Add/Edit/Password/Disable/Delete users) |
+| **User (Operator)** | `operator@skf.com` | `user123` | Operational Access: Data Entry, View Reports, Print & Download PDF |
+| **User (Engineer)** | `mandar.thorat@skf.com` | `user123` | Plant-floor user account |
 
 ---
 
@@ -71,7 +81,7 @@ python -m uvicorn main:app --reload --host 127.0.0.1 --port 8001
 
 ---
 
-### Terminal 2 — Start Frontend Server (Port 3030)
+### Terminal 2 — Start Frontend Server (Port 3040)
 
 ```bash
 cd d:\Code\bandgar\internship\frontend
