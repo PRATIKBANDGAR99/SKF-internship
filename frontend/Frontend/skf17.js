@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import skfLogo from './skf-logo.jpg';
 import { 
@@ -1979,27 +1979,22 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
         <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
           <tbody>
             <tr>
-              <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
-                <b>OPERATION :</b> {formData.operation || 'AUTO BORE GAUGE (POKA YOKE)'}
+              <td style={{ width: '35%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>CHANNEL :</b> {formData.channelNo || ''}
               </td>
-              <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
-                <b>DATE :</b> {formatDateToDDMMYY(formData.date)}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                <b>CHANNEL NO. :</b> {formData.channelNo || ''}
-              </td>
-              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                <b>SHIFT :</b> {formData.shift || ''}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+              <td style={{ width: '35%', padding: '5px 8px', boxSizing: 'border-box' }}>
                 <b>TYPE :</b> {formData.type || ''}
               </td>
+              <td rowSpan="2" style={{ width: '30%', padding: '5px 8px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '12px', verticalAlign: 'middle' }}>
+                BORE DIA: {formData.boreDia || ''}
+              </td>
+            </tr>
+            <tr>
               <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                <b>MACHINE NO. :</b> {formData.machineNo || ''}
+                <b>M/C NO. :</b> {formData.machineNo || ''}
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>DAY / SHIFT :</b> {formatDateToDDMMYY(formData.date)}{formData.shift ? ' ' + formData.shift : ''}
               </td>
             </tr>
           </tbody>
@@ -2215,18 +2210,20 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
         <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
           <thead>
             <tr style={{ backgroundColor: '#f9fafb' }}>
-              <th rowSpan="2" style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>SR. NO.</th>
-              <th rowSpan="2" style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold' }}>PARAMETER</th>
-              <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>STANDARD</th>
-              <th colSpan="2" style={{ ...tableCellStyle, width: '24%', fontWeight: 'bold', padding: '3px 0' }}>TRIAL 1</th>
-              <th colSpan="2" style={{ ...tableCellStyle, width: '24%', fontWeight: 'bold', padding: '3px 0' }}>TRIAL 2</th>
-              <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>REMARKS</th>
+              <th rowSpan="3" style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold' }}>PARAMETER</th>
+              <th rowSpan="3" style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold', fontSize: '10px' }}>TOLERANCE{' '}(MICRONS)</th>
+              <th colSpan="4" style={{ ...tableCellStyle, fontWeight: 'bold', padding: '3px 0' }}>TRIAL REPEAT</th>
+              <th rowSpan="3" style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold' }}>REMARKS</th>
             </tr>
             <tr style={{ backgroundColor: '#f9fafb' }}>
-              <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>1</th>
-              <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>2</th>
-              <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>1</th>
-              <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>2</th>
+              <th colSpan="2" style={{ ...tableCellStyle, width: '26%', fontWeight: 'bold' }}>1</th>
+              <th colSpan="2" style={{ ...tableCellStyle, width: '26%', fontWeight: 'bold' }}>2</th>
+            </tr>
+            <tr style={{ backgroundColor: '#f9fafb' }}>
+              <th style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold' }}></th>
+              <th style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold' }}></th>
+              <th style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold' }}></th>
+              <th style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold' }}></th>
             </tr>
           </thead>
           <tbody>
@@ -2235,32 +2232,20 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                 return (
                   <tr key={row.id || `py-${rIdx}`}>
                     {row.isGroupStart && (
-                      <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>
-                        {Math.floor(rIdx / 2) + 1}
-                      </td>
-                    )}
-                    {row.isGroupStart && (
-                      <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
+                      <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '15%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', verticalAlign: 'middle' }}>
                         <div>{row.parameter}</div>
-                        {row.colorLabel && <div style={{ fontSize: '10px', color: '#475569' }}>({row.colorLabel})</div>}
+                        {row.colorLabel && <div style={{ display: 'inline-block', marginTop: '2px', padding: '1px 5px', borderRadius: '3px', fontSize: '9.5px', fontWeight: 'bold', backgroundColor: row.colorLabel === 'RED' ? '#fee2e2' : row.colorLabel === 'YELLOW' ? '#fef9c3' : '#dcfce7', color: row.colorLabel === 'RED' ? '#b91c1c' : row.colorLabel === 'YELLOW' ? '#92400e' : '#15803d' }}>{row.colorLabel}</div>}
                       </td>
                     )}
-                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
-                      <div>{row.subType}</div>
-                      <input
-                          type="text"
-                          value={row.tol || ''}
-                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'tol', e.target.value)}
-                          placeholder="Tol"
-                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold', width: '100%', textAlign: 'center', marginTop: '2px' }}
-                        />
+                    <td style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold', fontSize: '10px' }}>
+                      <div style={{ fontWeight: 'bold' }}>{row.subType} {row.tol || ''}</div>
                     </td>
-                    <td style={{ ...tableCellStyle, width: '12%' }}>{renderSampleValue(row.trial1_1)}</td>
-                    <td style={{ ...tableCellStyle, width: '12%' }}>{renderSampleValue(row.trial1_2)}</td>
-                    <td style={{ ...tableCellStyle, width: '12%' }}>{renderSampleValue(row.trial2_1)}</td>
-                    <td style={{ ...tableCellStyle, width: '12%' }}>{renderSampleValue(row.trial2_2)}</td>
+                    <td style={{ ...tableCellStyle, width: '13%' }}>{renderSampleValue(row.trial1_1)}</td>
+                    <td style={{ ...tableCellStyle, width: '13%' }}>{renderSampleValue(row.trial1_2)}</td>
+                    <td style={{ ...tableCellStyle, width: '13%' }}>{renderSampleValue(row.trial2_1)}</td>
+                    <td style={{ ...tableCellStyle, width: '13%' }}>{renderSampleValue(row.trial2_2)}</td>
                     {row.isGroupStart && (
-                      <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px' }}>
+                      <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold', fontSize: '10px', verticalAlign: 'middle' }}>
                         {renderRemarksDisplay(row.remarks)}
                       </td>
                     )}
@@ -2270,34 +2255,40 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               if (row.rowType === 'sorting') {
                 return (
                   <tr key={row.id || `py-${rIdx}`}>
-                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
+                    <td style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold', fontSize: '10px', textAlign: 'left', padding: '3px 6px' }}>
                       <div>{row.subType}</div>
-                      <div style={{ fontSize: '9.5px', color: '#475569' }}>{row.chuteText || row.tol}</div>
+                      <div style={{ fontSize: '9px', color: '#374151', fontWeight: 'normal' }}>{row.chuteText || row.tol}</div>
                     </td>
-                    <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>{renderSampleValue(row.trial1Check || '✓')}</td>
-                    <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>{renderSampleValue(row.trial2Check || '✓')}</td>
+                    <td colSpan="2" style={{ ...tableCellStyle, width: '26%' }}>{renderSampleValue(row.trial1Check || '✓')}</td>
+                    <td colSpan="2" style={{ ...tableCellStyle, width: '26%' }}>{renderSampleValue(row.trial2Check || '✓')}</td>
                   </tr>
                 );
               }
               // Simple row (Tolerance, Appearance, Rejection Box)
               return (
                 <tr key={row.id || `py-${rIdx}`}>
-                  <td style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>{rIdx - 2}</td>
-                  <td style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
+                  <td colSpan="1" style={{ ...tableCellStyle, width: '15%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
                     {row.parameter}
                   </td>
-                  <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
-                    {row.tol}
+                  <td style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', fontSize: '10px' }}>
+                    {row.parameter === 'TOLERANCE' ? <><span style={{ fontSize: '9px', color: '#64748b' }}>Set </span>{row.tol}</> : row.tol}
                   </td>
-                  <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>{renderSampleValue(row.trial1_1 || row.trial1 || '')}</td>
-                  <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>{renderSampleValue(row.trial2_1 || row.trial2 || '')}</td>
-                  <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px' }}>
+                  <td colSpan="2" style={{ ...tableCellStyle, width: '26%' }}>{renderSampleValue(row.trial1_1 || row.trial1 || '')}</td>
+                  <td colSpan="2" style={{ ...tableCellStyle, width: '26%' }}>{renderSampleValue(row.trial2_1 || row.trial2 || '')}</td>
+                  <td style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold', fontSize: '10px' }}>
                     {renderRemarksDisplay(row.remarks)}
                   </td>
                 </tr>
               );
             })}
           </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan="7" style={{ ...tableCellStyle, padding: '5px 8px', textAlign: 'left', fontWeight: 'bold', fontSize: '10.5px' }}>
+                SET UP APPROVAL : APPROVED / NOT APPROVED
+              </td>
+            </tr>
+          </tfoot>
         </table>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11.5px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
@@ -4311,72 +4302,37 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
           <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
             <tbody>
               <tr>
-                <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
-                  <b>OPERATION :</b> {formData.operation || 'AUTO BORE GAUGE (POKA YOKE)'}
-                </td>
-                <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <td style={{ width: '35%', padding: '5px 8px', boxSizing: 'border-box' }}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <b>DATE :</b>
-                    <input
-                      type="text"
-                      value={formData.date || ''}
-                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                      onBlur={(e) => setFormData({ ...formData, date: formatDateToDDMMYY(e.target.value) })}
-                      placeholder="dd/mm/yy"
-                      style={{ marginLeft: '6px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '95px', fontSize: '11px' }}
-                    />
+                    <b>CHANNEL :</b>
+                    <input type="text" value={formData.channelNo || ''} onChange={(e) => setFormData({ ...formData, channelNo: e.target.value })} placeholder="e.g. 02" style={{ marginLeft: '6px', width: '70px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }} />
                   </div>
                 </td>
-              </tr>
-              <tr>
-                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <b>CHANNEL NO. :</b>
-                    <input
-                      type="text"
-                      value={formData.channelNo || ''}
-                      onChange={(e) => setFormData({ ...formData, channelNo: e.target.value })}
-                      placeholder="e.g. CH3"
-                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
-                    />
-                  </div>
-                </td>
-                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <b>SHIFT :</b>
-                    <input
-                      type="text"
-                      value={formData.shift || ''}
-                      onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
-                      placeholder="e.g. I"
-                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
-                    />
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <td style={{ width: '35%', padding: '5px 8px', boxSizing: 'border-box' }}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <b>TYPE :</b>
-                    <input
-                      type="text"
-                      value={formData.type || ''}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                      placeholder="Enter Type"
-                      style={{ marginLeft: '6px', width: '180px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
-                    />
+                    <input type="text" value={formData.type || ''} onChange={(e) => setFormData({ ...formData, type: e.target.value })} placeholder="e.g. 6206" style={{ marginLeft: '6px', width: '120px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }} />
+                  </div>
+                </td>
+                <td rowSpan="2" style={{ width: '30%', padding: '5px 8px', boxSizing: 'border-box', verticalAlign: 'middle' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>BORE DIA :</b>
+                    <input type="text" value={formData.boreDia || ''} onChange={(e) => setFormData({ ...formData, boreDia: e.target.value })} placeholder="e.g. 30.00 mm" style={{ marginLeft: '6px', width: '90px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }} />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>M/C NO. :</b>
+                    <input type="text" value={formData.machineNo || ''} onChange={(e) => setFormData({ ...formData, machineNo: e.target.value })} placeholder="Machine" style={{ marginLeft: '6px', width: '90px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }} />
                   </div>
                 </td>
                 <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <b>MACHINE NO. :</b>
-                    <input
-                      type="text"
-                      value={formData.machineNo || ''}
-                      onChange={(e) => setFormData({ ...formData, machineNo: e.target.value })}
-                      placeholder="Machine"
-                      style={{ marginLeft: '6px', width: '100px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
-                    />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <b>DAY / SHIFT :</b>
+                    <input type="text" value={formData.date || ''} onChange={(e) => setFormData({ ...formData, date: e.target.value })} onBlur={(e) => setFormData({ ...formData, date: formatDateToDDMMYY(e.target.value) })} placeholder="dd/mm/yy" style={{ width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', fontSize: '11px' }} />
+                    <input type="text" value={formData.shift || ''} onChange={(e) => setFormData({ ...formData, shift: e.target.value })} placeholder="Shift I/II" style={{ width: '60px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }} />
                   </div>
                 </td>
               </tr>
@@ -4817,18 +4773,20 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
           <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
             <thead>
               <tr style={{ backgroundColor: '#f9fafb' }}>
-                <th rowSpan="2" style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>SR. NO.</th>
-                <th rowSpan="2" style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold' }}>PARAMETER</th>
-                <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>STANDARD</th>
-                <th colSpan="2" style={{ ...tableCellStyle, width: '24%', fontWeight: 'bold', padding: '3px 0' }}>TRIAL 1</th>
-                <th colSpan="2" style={{ ...tableCellStyle, width: '24%', fontWeight: 'bold', padding: '3px 0' }}>TRIAL 2</th>
-                <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>REMARKS</th>
+                <th rowSpan="3" style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold' }}>PARAMETER</th>
+                <th rowSpan="3" style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold', fontSize: '10px' }}>TOLERANCE{' '}(MICRONS)</th>
+                <th colSpan="4" style={{ ...tableCellStyle, fontWeight: 'bold', padding: '3px 0' }}>TRIAL REPEAT</th>
+                <th rowSpan="3" style={{ ...tableCellStyle, width: '15%', fontWeight: 'bold' }}>REMARKS</th>
               </tr>
               <tr style={{ backgroundColor: '#f9fafb' }}>
-                <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>1</th>
-                <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>2</th>
-                <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>1</th>
-                <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>2</th>
+                <th colSpan="2" style={{ ...tableCellStyle, width: '26%', fontWeight: 'bold' }}>1</th>
+                <th colSpan="2" style={{ ...tableCellStyle, width: '26%', fontWeight: 'bold' }}>2</th>
+              </tr>
+              <tr style={{ backgroundColor: '#f9fafb' }}>
+                <th style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold' }}></th>
+                <th style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold' }}></th>
+                <th style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold' }}></th>
+                <th style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold' }}></th>
               </tr>
             </thead>
             <tbody>
@@ -4837,64 +4795,36 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                   return (
                     <tr key={row.id || `py-${rIdx}`}>
                       {row.isGroupStart && (
-                        <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>
-                          {Math.floor(rIdx / 2) + 1}
-                        </td>
-                      )}
-                      {row.isGroupStart && (
-                        <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
+                        <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '15%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', verticalAlign: 'middle' }}>
                           <div>{row.parameter}</div>
-                          {row.colorLabel && <div style={{ fontSize: '10px', color: '#475569' }}>({row.colorLabel})</div>}
+                          {row.colorLabel && <div style={{ display: 'inline-block', marginTop: '2px', padding: '1px 5px', borderRadius: '3px', fontSize: '9.5px', fontWeight: 'bold', backgroundColor: row.colorLabel === 'RED' ? '#fee2e2' : row.colorLabel === 'YELLOW' ? '#fef9c3' : '#dcfce7', color: row.colorLabel === 'RED' ? '#b91c1c' : row.colorLabel === 'YELLOW' ? '#92400e' : '#15803d' }}>{row.colorLabel}</div>}
                         </td>
                       )}
-                      <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
-                        <div>{row.subType}</div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>{row.tol}</div>
-                      </td>
-                      <td style={{ ...tableCellStyle, width: '12%' }}>
+                      <td style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold', fontSize: '10px', textAlign: 'center' }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{row.subType}</div>
                         <input
                           type="text"
-                          value={row.trial1_1 || ''}
-                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial1_1', e.target.value)}
-                          placeholder="reading"
-                          style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                          value={row.tol || ''}
+                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'tol', e.target.value)}
+                          placeholder="tolerance"
+                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold', width: '85%', textAlign: 'center' }}
                         />
                       </td>
-                      <td style={{ ...tableCellStyle, width: '12%' }}>
-                        <input
-                          type="text"
-                          value={row.trial1_2 || ''}
-                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial1_2', e.target.value)}
-                          placeholder="reading"
-                          style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
-                        />
+                      <td style={{ ...tableCellStyle, width: '13%' }}>
+                        <input type="text" value={row.trial1_1 || ''} onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial1_1', e.target.value)} placeholder="-" style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }} />
                       </td>
-                      <td style={{ ...tableCellStyle, width: '12%' }}>
-                        <input
-                          type="text"
-                          value={row.trial2_1 || ''}
-                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial2_1', e.target.value)}
-                          placeholder="reading"
-                          style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
-                        />
+                      <td style={{ ...tableCellStyle, width: '13%' }}>
+                        <input type="text" value={row.trial1_2 || ''} onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial1_2', e.target.value)} placeholder="-" style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }} />
                       </td>
-                      <td style={{ ...tableCellStyle, width: '12%' }}>
-                        <input
-                          type="text"
-                          value={row.trial2_2 || ''}
-                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial2_2', e.target.value)}
-                          placeholder="reading"
-                          style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
-                        />
+                      <td style={{ ...tableCellStyle, width: '13%' }}>
+                        <input type="text" value={row.trial2_1 || ''} onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial2_1', e.target.value)} placeholder="-" style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }} />
+                      </td>
+                      <td style={{ ...tableCellStyle, width: '13%' }}>
+                        <input type="text" value={row.trial2_2 || ''} onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial2_2', e.target.value)} placeholder="-" style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }} />
                       </td>
                       {row.isGroupStart && (
-                        <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px' }}>
-                          <input
-                            type="text"
-                            value={renderRemarksDisplay(row.remarks)}
-                            onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'remarks', e.target.value)}
-                            style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                          />
+                        <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '15%', padding: '2px', verticalAlign: 'middle' }}>
+                          <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleDgbbPokaYokeCellChange(rIdx, 'remarks', val)} />
                         </td>
                       )}
                     </tr>
@@ -4903,69 +4833,67 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                 if (row.rowType === 'sorting') {
                   return (
                     <tr key={row.id || `py-${rIdx}`}>
-                      <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
+                      <td style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold', fontSize: '10px', textAlign: 'left', padding: '3px 6px' }}>
                         <div>{row.subType}</div>
-                        <div style={{ fontSize: '9.5px', color: '#475569' }}>{row.chuteText || row.tol}</div>
+                        <div style={{ fontSize: '9px', color: '#374151', fontWeight: 'normal' }}>{row.chuteText || row.tol}</div>
                       </td>
-                      <td colSpan="2" style={{ ...tableCellStyle, width: '24%', cursor: 'pointer' }} onClick={() => handleDgbbPokaYokeCellChange(rIdx, 'trial1Check', row.trial1Check === '✗' ? '✓' : '✗')}>
+                      <td colSpan="2" style={{ ...tableCellStyle, width: '26%', cursor: 'pointer' }} onClick={() => handleDgbbPokaYokeCellChange(rIdx, 'trial1Check', row.trial1Check === '✗' ? '✓' : '✗')}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                           {row.trial1Check === '✗' ? <CrossIcon size={16} color="#dc2626" /> : <CheckIcon size={16} color="#16a34a" />}
-                          <span style={{ fontSize: '10px', color: '#64748b' }}>({row.trial1Check || '✓'})</span>
+                          <span style={{ fontSize: '10px', color: '#64748b' }}>click to toggle</span>
                         </div>
                       </td>
-                      <td colSpan="2" style={{ ...tableCellStyle, width: '24%', cursor: 'pointer' }} onClick={() => handleDgbbPokaYokeCellChange(rIdx, 'trial2Check', row.trial2Check === '✗' ? '✓' : '✗')}>
+                      <td colSpan="2" style={{ ...tableCellStyle, width: '26%', cursor: 'pointer' }} onClick={() => handleDgbbPokaYokeCellChange(rIdx, 'trial2Check', row.trial2Check === '✗' ? '✓' : '✗')}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                           {row.trial2Check === '✗' ? <CrossIcon size={16} color="#dc2626" /> : <CheckIcon size={16} color="#16a34a" />}
-                          <span style={{ fontSize: '10px', color: '#64748b' }}>({row.trial2Check || '✓'})</span>
+                          <span style={{ fontSize: '10px', color: '#64748b' }}>click to toggle</span>
                         </div>
                       </td>
                     </tr>
                   );
                 }
+                // Simple row: TOLERANCE, APPEARANCE, Rejection Box
                 return (
                   <tr key={row.id || `py-${rIdx}`}>
-                    <td style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>{rIdx - 2}</td>
-                    <td style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
+                    <td style={{ ...tableCellStyle, width: '15%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
                       {row.parameter}
                     </td>
-                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
-                      <input
-                        type="text"
-                        value={row.tol || ''}
-                        onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'tol', e.target.value)}
-                        style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
-                      />
+                    <td style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '2px 4px' }}>
+                      {row.parameter === 'TOLERANCE' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '9px', color: '#64748b', fontWeight: 'bold' }}>Set</span>
+                          <input type="text" value={row.tol || ''} onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'tol', e.target.value)} placeholder="0-8" style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold', width: '80%' }} />
+                        </div>
+                      ) : (
+                        <span style={{ fontWeight: 'bold', fontSize: '10px' }}>{row.tol}</span>
+                      )}
                     </td>
-                    <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>
-                      <input
-                        type="text"
-                        value={row.trial1_1 || row.trial1 || ''}
-                        onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial1_1', e.target.value)}
-                        placeholder="reading"
-                        style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
-                      />
+                    <td colSpan="2" style={{ ...tableCellStyle, width: '26%' }}>
+                      <input type="text" value={row.trial1_1 || ''} onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial1_1', e.target.value)} placeholder="-" style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }} />
                     </td>
-                    <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>
-                      <input
-                        type="text"
-                        value={row.trial2_1 || row.trial2 || ''}
-                        onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial2_1', e.target.value)}
-                        placeholder="reading"
-                        style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
-                      />
+                    <td colSpan="2" style={{ ...tableCellStyle, width: '26%' }}>
+                      <input type="text" value={row.trial2_1 || ''} onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial2_1', e.target.value)} placeholder="-" style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }} />
                     </td>
-                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px' }}>
-                      <input
-                        type="text"
-                        value={renderRemarksDisplay(row.remarks)}
-                        onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'remarks', e.target.value)}
-                        style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                      />
+                    <td style={{ ...tableCellStyle, width: '15%', padding: '2px' }}>
+                      <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleDgbbPokaYokeCellChange(rIdx, 'remarks', val)} />
                     </td>
                   </tr>
                 );
               })}
             </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan="3" style={{ ...tableCellStyle, padding: '5px 8px', textAlign: 'left', fontWeight: 'bold', fontSize: '10.5px' }}>
+                  SET UP APPROVAL : APPROVED / NOT APPROVED
+                </td>
+                <td colSpan="2" style={{ ...tableCellStyle, padding: '5px 8px', fontWeight: 'bold', fontSize: '10.5px' }}>
+                  INSPECTOR
+                </td>
+                <td colSpan="2" style={{ ...tableCellStyle, padding: '5px 8px', fontWeight: 'bold', fontSize: '10.5px' }}>
+                  SUPERVISOR
+                </td>
+              </tr>
+            </tfoot>
           </table>
         ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11.5px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
