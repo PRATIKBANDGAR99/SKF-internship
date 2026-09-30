@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import skfLogo from './skf-logo.jpg';
 import { 
@@ -501,8 +501,311 @@ const parseVibrationSample = (val) => {
   return { sub1: { top: String(val), bottom: '' }, sub2: { top: '', bottom: '' } };
 };
 
+// ==========================================
+// DGBB DEFAULT TABLE DATA DEFINITIONS
+// ==========================================
+
+// 1. SKF/QA/DGBB/04 - IR FACE GRINDING
+const defaultDgbb04TableData = [
+  { id: 'dgbb-04-1', parameter: 'WIDTH', symbol: 'Bi', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-04-2', parameter: 'WIDTH VARIATION', symbol: 'Vbi', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-04-3', parameter: 'GR. POS. DIFF.', symbol: 'Ai/Ai"', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-04-4', parameter: 'GR. WOBBLE', symbol: 'VAI', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-04-5', parameter: 'FACE WAVINESS', symbol: 'Spi', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-04-6', parameter: 'FACE C.L.A.', symbol: 'Ra Bi', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-04-7', parameter: 'GRINDING BURNS', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-04-8', parameter: 'APPEARANCE', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' }
+];
+
+// 2. SKF/QA/DGBB/06 - IR GROOVE GRINDING
+const defaultDgbb06TableData = [
+  { id: 'dgbb-06-1', parameter: 'GROOVE DIA', symbol: 'Di', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-2', parameter: 'GROOVE OVALITY', symbol: 'VDi', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-3', parameter: '3 POINTS', symbol: 'V3Di', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-4', parameter: 'GROOVE POSITION DIFF.', symbol: 'Ai-Ai"', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-5', parameter: 'GROOVE WOBBLE', symbol: 'VAI', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-6', parameter: 'GROOVE RADIUS', symbol: 'ri', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-7', parameter: 'GROOVE FORM', symbol: 'Vre', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-8', parameter: 'GROOVE CLA', symbol: 'Ra Di', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-12', parameter: 'LAND DIAMETER', symbol: 'Dk di', tol: '–', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-13', parameter: 'LAND OVALITY', symbol: 'VDK', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-14', parameter: 'LAND SQUARENESS', symbol: 'Sm', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-15', parameter: 'LAND TAPER', symbol: '–', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-16', parameter: 'GRINDING BURN', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-06-17', parameter: 'APPEARANCE', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' }
+];
+
+// 3 & 4. SKF/QA/DGBB/03 - BORE GRINDING (1) & (2)
+const defaultDgbb03TableData = [
+  { id: 'dgbb-03-1', parameter: 'BORE 1ST SIDE', symbol: 'd1', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-03-2', parameter: 'BORE 2ND SIDE', symbol: 'd2', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-03-3', parameter: 'OVALITY', symbol: 'Vd', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-03-4', parameter: 'TAPER', symbol: 'Vdm', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-03-5', parameter: '3 POINTS', symbol: 'V3d', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-03-6', parameter: 'GROOVE RUNOUT', symbol: 'VEI', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-03-7', parameter: 'BORE SQUARENESS', symbol: 'K1', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-03-8', parameter: 'CLA', symbol: 'Ra d', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-03-9', parameter: 'GRINDING BURNS', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-03-10', parameter: 'APPEARANCE', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' }
+];
+
+// 5. SKF/QA/DGBB/03A - AUTO BORE GAUGE (POKA YOKE)
+const defaultDgbb03aTableData = [
+  {
+    id: 'dgbb-03a-1',
+    parameter: 'MASTER 1',
+    colorLabel: 'RED',
+    isGroupStart: true,
+    groupSpan: 2,
+    rowType: 'size',
+    subType: 'SIZE',
+    tol: '',
+    trial1_1: '',
+    trial1_2: '',
+    trial2_1: '',
+    trial2_2: '',
+    remarks: ''
+  },
+  {
+    id: 'dgbb-03a-2',
+    parameter: 'MASTER 1',
+    colorLabel: 'RED',
+    isGroupStart: false,
+    rowType: 'sorting',
+    subType: 'SORTING',
+    chuteText: 'Passing to Scrap Chute 1',
+    tol: 'Passing to Scrap Chute 1',
+    trial1Check: '✓',
+    trial2Check: '✓',
+    remarks: ''
+  },
+  {
+    id: 'dgbb-03a-3',
+    parameter: 'MASTER 2',
+    colorLabel: 'YELLOW',
+    isGroupStart: true,
+    groupSpan: 2,
+    rowType: 'size',
+    subType: 'SIZE',
+    tol: '',
+    trial1_1: '',
+    trial1_2: '',
+    trial2_1: '',
+    trial2_2: '',
+    remarks: ''
+  },
+  {
+    id: 'dgbb-03a-4',
+    parameter: 'MASTER 2',
+    colorLabel: 'YELLOW',
+    isGroupStart: false,
+    rowType: 'sorting',
+    subType: 'SORTING',
+    chuteText: 'Passing to Rework Chute 2',
+    tol: 'Passing to Rework Chute 2',
+    trial1Check: '✓',
+    trial2Check: '✓',
+    remarks: ''
+  },
+  {
+    id: 'dgbb-03a-5',
+    parameter: 'MASTER 3',
+    colorLabel: 'GREEN',
+    isGroupStart: true,
+    groupSpan: 2,
+    rowType: 'size',
+    subType: 'SIZE',
+    tol: '',
+    trial1_1: '',
+    trial1_2: '',
+    trial2_1: '',
+    trial2_2: '',
+    remarks: ''
+  },
+  {
+    id: 'dgbb-03a-6',
+    parameter: 'MASTER 3',
+    colorLabel: 'GREEN',
+    isGroupStart: false,
+    rowType: 'sorting',
+    subType: 'SORTING',
+    chuteText: 'Passing to GOOD Chute 3',
+    tol: 'Passing to GOOD Chute 3',
+    trial1Check: '✓',
+    trial2Check: '✓',
+    remarks: ''
+  },
+  {
+    id: 'dgbb-03a-7',
+    parameter: 'TOLERANCE',
+    rowType: 'simple',
+    tol: '',
+    subLabel: 'Set',
+    trial1_1: '',
+    trial2_1: '',
+    remarks: ''
+  },
+  {
+    id: 'dgbb-03a-8',
+    parameter: 'APPERANCE',
+    rowType: 'simple',
+    tol: 'Free From Dent Damage',
+    trial1_1: 'OK',
+    trial2_1: '',
+    remarks: ''
+  },
+  {
+    id: 'dgbb-03a-9',
+    parameter: 'Rejection Box',
+    rowType: 'simple',
+    tol: 'Lock And Key',
+    trial1_1: 'NO',
+    trial2_1: '',
+    remarks: ''
+  }
+];
+
+// 6. SKF/QA/DGBB/07 - IR GROOVE HONING
+const defaultDgbb07TableData = [
+  { id: 'dgbb-07-1', parameter: 'GROOVE DIA', symbol: 'Di', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-07-2', parameter: 'GROOVE OVALITY', symbol: 'VDi', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-07-3', parameter: 'GROOVE RADIUS', symbol: 'ri', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-07-4', parameter: 'GROOVE CLA', symbol: 'Ra Di', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-07-5', parameter: 'GROOVE FORM', symbol: 'Vri', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-07-6', isVkrGroup: true, isFirstInGroup: true, parameter: 'GROOVE VKR', symbol: 'MDi', subParameter: 'L', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-07-7', isVkrGroup: true, isFirstInGroup: false, subParameter: 'M', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-07-8', isVkrGroup: true, isFirstInGroup: false, subParameter: 'H', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-07-9', parameter: 'GRINDING BURNS', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-07-10', parameter: 'APPEARANCE', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' }
+];
+
+// 7. SKF/QA/DGBB/05 - OR FACE GRINDING
+const defaultDgbb05TableData = [
+  { id: 'dgbb-05-1', parameter: 'WIDTH', symbol: 'Be', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-05-2', parameter: 'WIDTH VARIATION', symbol: 'VBe', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-05-3', parameter: 'GR. POS. DIFF.', symbol: 'Ae/Ae"', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-05-4', parameter: 'GR. WOBBLE', symbol: 'VAe', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-05-5', parameter: 'FACE WAVINESS', symbol: 'Spe', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-05-6', parameter: 'FACE C.L.A.', symbol: 'Ra Be', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-05-7', parameter: 'GRINDING BURNS', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-05-8', parameter: 'APPEARANCE', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' }
+];
+
+// 8. SKF/QA/DGBB/08 - OD GRINDING
+const defaultDgbb08TableData = [
+  { id: 'dgbb-08-1', parameter: 'OD 1ST SIDE', symbol: 'D1', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-2', parameter: 'OD 2ND SIDE', symbol: 'D2', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-3', parameter: 'OVALITY', symbol: 'VD', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-4', parameter: 'OD TAPER', symbol: 'Vdm', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-5', parameter: 'OD 3 POINTS', symbol: 'V3D', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-6', parameter: 'OD 5 POINTS', symbol: 'V5D', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-7', parameter: 'SQUARENES', symbol: 'SM', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-8', parameter: 'OD CLA', symbol: 'RA', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-9', parameter: 'GRINDING BURNS', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-10', parameter: 'APPERANCE', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-08-11', parameter: 'ODVKR (Up to 52mm OD only)', symbol: 'MD', tol: '–', samples: ['', '', '', '', ''], remarks: '' }
+];
+
+// 9 & 10. SKF/QA/DGBB/09 - OR GROOVE GRINDING (1) & (2)
+const defaultDgbb09TableData = [
+  { id: 'dgbb-09-1', parameter: 'GOOVE DIAMETER', symbol: 'de', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-2', parameter: 'GROOVE OVALITY', symbol: 'Vde', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-3', parameter: 'GROOVE RUNOUT', symbol: 'VEe', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-4', parameter: 'GROOVE POSI. DIFF', symbol: "Ae'-Ae\"", tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-5', parameter: 'GROOVE WOBBLE', symbol: 'VAe', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-6', parameter: '3 POINTS', symbol: 'V3de', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-7', parameter: 'GROOVE RADIUS', symbol: 're', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-8', parameter: 'GROOVE FORM', symbol: 'Vre', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-9', parameter: 'GROOVE CLA', symbol: 'de', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-10', isVkrGroup: true, isFirstInGroup: true, parameter: 'GROOVE VKR', symbol: 'Mde', subParameter: 'L1', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-11', isVkrGroup: true, isFirstInGroup: false, subParameter: 'L2', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-12', isVkrGroup: true, isFirstInGroup: false, subParameter: 'L3', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-13', parameter: 'GRINDING BURNS', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-09-14', parameter: 'APPEARANCE', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' }
+];
+
+// 11 & 12. SKF/QA/DGBB/10 - OR GROOVE HONING (1) & (2)
+const defaultDgbb10TableData = [
+  { id: 'dgbb-10-1', parameter: 'GROOVE DIA', symbol: 'de', tol: '', isDoubleRow: true, samplesRow1: ['', '', '', '', ''], samplesRow2: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-2', parameter: 'GROOVE 3 POINT', symbol: 'V3de', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-3', parameter: 'GROOVE OVALITY', symbol: 'Vde', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-4', parameter: 'GROOVE RADIUS', symbol: 're', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-5', parameter: 'GROOVE CLA', symbol: 'Ra De', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-6', parameter: 'GROOVE FORM', symbol: 'Vre', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-7', isVkrGroup: true, isFirstInGroup: true, parameter: 'GROOVE VKR', symbol: 'Mde', subParameter: 'L', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-8', isVkrGroup: true, isFirstInGroup: false, subParameter: 'M', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-9', isVkrGroup: true, isFirstInGroup: false, subParameter: 'H', tol: '', samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-10', parameter: 'GRINDING BURNS', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' },
+  { id: 'dgbb-10-11', parameter: 'APPEARANCE', symbol: '–', tol: '–', isVisualOption: true, samples: ['', '', '', '', ''], remarks: '' }
+];
+
+// 13. SKF/QA/DGBB/10 - SET OF A RECORD/ASSEMBLY (SKF/QA/DGBB/16)
+const defaultDgbbAssemblyTableData = [
+  { id: 'dgbb-as-1', process: 'Ball filling', equipment: 'HME/HMV/XHM/Manual', parameter: 'OD Ovality', apparatus: 'UD app', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-2', process: 'Ball filling', equipment: '', parameter: 'Clearance', apparatus: 'MGI/MGO', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-3', process: 'Caging', equipment: 'HIT / Manual', parameter: 'Rivet form', apparatus: 'Visual', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-4', process: 'Caging', equipment: 'RC Unit', parameter: 'Half press', apparatus: 'RCU', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-5', process: 'Caging', equipment: '', parameter: 'Double cage/Cage Missing', apparatus: 'RCU', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-6', process: 'Demagnetiser', equipment: 'Bussi/India make', parameter: 'Single piece flow', apparatus: 'Manual', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-7', process: 'Demagnetiser', equipment: '', parameter: 'Effectiveness', apparatus: 'Visual', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-8', process: '1st Wash', equipment: 'TTB', parameter: 'Flow', apparatus: 'Visual', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-9', process: '1st Wash', equipment: '', parameter: 'Nozzle Direction', apparatus: 'Visual', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-10', process: 'Missing Component free running check', equipment: 'MYD', parameter: 'Missing ball', apparatus: 'Ref bearing', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-11', process: 'Missing Component free running check', equipment: '', parameter: 'Missing rivet', apparatus: 'Ref bearing', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-12', process: 'Missing Component free running check', equipment: '', parameter: 'Brake', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-13', process: 'Vibration testing', equipment: 'MVM', parameter: 'Pressure setting', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-14', process: 'Vibration testing', equipment: '', parameter: 'Tolerance', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-15', process: 'Radial Clearance', equipment: 'MGI / MGO', parameter: 'C2 Reference', apparatus: '4 µm', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-16', process: 'Radial Clearance', equipment: '', parameter: 'N Referance', apparatus: '16 µm', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-17', process: 'Radial Clearance', equipment: '', parameter: 'C3 Referance', apparatus: '28 µm', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-18', process: 'Radial Clearance', equipment: '', parameter: 'C4 Referance', apparatus: '36 µm', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-19', process: 'Radial Clearance', equipment: '', parameter: 'Bore Poka Yoke', apparatus: '+7', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-20', process: 'Marking', equipment: 'Laser', parameter: 'Legibility', apparatus: 'Visual', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-21', process: '2nd Wash', equipment: 'TTB', parameter: 'Flow', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-22', process: '2nd Wash', equipment: '', parameter: 'Nozzle Direction', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-23', process: 'Visual Insp.', equipment: 'Table', parameter: '', apparatus: 'Visual', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-24', process: 'Preservation', equipment: '', parameter: 'Oil coverage', apparatus: 'Visual', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-25', process: 'Greasing', equipment: 'TOL', parameter: 'Grease type', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-26', process: 'Greasing', equipment: '', parameter: 'Grease weight', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-27', process: 'Capping', equipment: 'XHM/HIV/Manual', parameter: 'OD Ovality', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-28', process: 'Capping', equipment: '', parameter: 'Shield fittment', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-29', process: 'Capping', equipment: '', parameter: 'Inbuilt Poka Yoke', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-30', process: 'Capping', equipment: '', parameter: 'Form', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-31', process: 'Poka Yoke', equipment: 'Poka Yoke', parameter: 'Working', apparatus: '', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-32', process: 'Packing', equipment: 'IMAN / Manual', parameter: 'Sealing quality', apparatus: 'Manual', status: 'OK', remarks: '' },
+  { id: 'dgbb-as-33', process: 'Line cleaning of old bearing', equipment: '', parameter: '', apparatus: 'Visual', status: 'OK', remarks: '' }
+];
+
+const isDgbbFormKey = (formKey = '', formatNo = '') => {
+  const str = `${formKey} ${formatNo}`.toUpperCase();
+  return str.includes('DGBB');
+};
+
+const isDgbbPokaYokeForm = (formKey = '', op = '') => {
+  const upperKey = (formKey || '').toUpperCase();
+  const upperOp = (op || '').toUpperCase();
+  return upperKey.includes('DGBB/03A') || upperOp.includes('POKA YOKE') || upperOp.includes('AUTO BORE GAUGE');
+};
+
+const isDgbbAssemblyForm = (formKey = '', op = '') => {
+  if (isDgbbPokaYokeForm(formKey, op)) return false;
+  const upperKey = (formKey || '').toUpperCase();
+  const upperOp = (op || '').toUpperCase();
+  return (
+    upperKey.includes('DGBB/10-ASSEMBLY') ||
+    upperKey.includes('DGBB/16') ||
+    upperOp.includes('SET OF A RECORD') ||
+    (upperKey.includes('DGBB') && upperOp.includes('ASSEMBLY'))
+  );
+};
+
+const isDgbbGrindingForm = (formKey = '', op = '') => {
+  return isDgbbFormKey(formKey) && !isDgbbPokaYokeForm(formKey, op) && !isDgbbAssemblyForm(formKey, op);
+};
+
 const isQualityEquipmentsForm = (formKey = '', op = '') => {
   const upperKey = (formKey || '').toUpperCase();
+  if (upperKey.includes('DGBB')) return false;
   const upperOp = (op || '').toUpperCase();
   return (
     upperKey.includes('TRB/17') ||
@@ -513,8 +816,9 @@ const isQualityEquipmentsForm = (formKey = '', op = '') => {
 };
 
 const isAssemblyForm = (formKey = '', op = '') => {
-  if (isQualityEquipmentsForm(formKey, op)) return false;
   const upperKey = (formKey || '').toUpperCase();
+  if (upperKey.includes('DGBB')) return false;
+  if (isQualityEquipmentsForm(formKey, op)) return false;
   const upperOp = (op || '').toUpperCase();
   return (
     upperKey.includes('TRB/09') ||
@@ -525,9 +829,10 @@ const isAssemblyForm = (formKey = '', op = '') => {
 };
 
 const isMarkingForm = (formKey = '', op = '', ringSection = '') => {
+  const upperKey = (formKey || '').toUpperCase();
+  if (upperKey.includes('DGBB')) return false;
   if (isQualityEquipmentsForm(formKey, op)) return false;
   if (isAssemblyForm(formKey, op)) return false;
-  const upperKey = (formKey || '').toUpperCase();
   const upperOp = (op || '').toUpperCase();
   return (
     upperKey.includes('TRB/08') ||
@@ -544,6 +849,7 @@ const isMarkingForm = (formKey = '', op = '', ringSection = '') => {
 
 const isFlangeGrindingForm = (formKey = '', op = '') => {
   const upperKey = (formKey || '').toUpperCase();
+  if (upperKey.includes('DGBB')) return false;
   const upperOp = (op || '').toUpperCase();
   return (
     upperKey.includes('TRB/04') ||
@@ -554,6 +860,7 @@ const isFlangeGrindingForm = (formKey = '', op = '') => {
 
 const isBoreGrindingForm = (formKey = '', op = '') => {
   const upperKey = (formKey || '').toUpperCase();
+  if (upperKey.includes('DGBB')) return false;
   const upperOp = (op || '').toUpperCase();
   return (
     upperKey.includes('TRB/03') ||
@@ -565,6 +872,7 @@ const isBoreGrindingForm = (formKey = '', op = '') => {
 
 const isInnerRingTrackHoningForm = (formKey = '', op = '', ringSection = '') => {
   const upperKey = (formKey || '').toUpperCase();
+  if (upperKey.includes('DGBB')) return false;
   const upperOp = (op || '').toUpperCase();
   const upperRing = (ringSection || '').toUpperCase();
 
@@ -578,6 +886,7 @@ const isInnerRingTrackHoningForm = (formKey = '', op = '', ringSection = '') => 
 
 const isOuterRingTrackHoningForm = (formKey = '', op = '', ringSection = '') => {
   const upperKey = (formKey || '').toUpperCase();
+  if (upperKey.includes('DGBB')) return false;
   const upperOp = (op || '').toUpperCase();
   const upperRing = (ringSection || '').toUpperCase();
 
@@ -595,7 +904,32 @@ const isTrackHoningForm = (formKey = '', op = '', ringSection = '') => {
 const getRingSectionFromFormKey = (formKey = '', fallback = '') => {
   if (!formKey) return fallback;
   const upper = formKey.toUpperCase();
-  if (upper.includes('09') || upper.includes('17')) return 'ASSEMBLY';
+
+  // DGBB Ring Section resolution
+  if (upper.includes('DGBB')) {
+    if (upper.includes('ASSEMBLY') || upper.includes('DGBB/16') || upper.includes('SET OF A RECORD')) {
+      return 'Assembly';
+    }
+    if (
+      upper.includes('DGBB/05') ||
+      upper.includes('DGBB/08') ||
+      upper.includes('DGBB/09') ||
+      upper.includes('DGBB/10')
+    ) {
+      return 'Outer Ring';
+    }
+    if (
+      upper.includes('DGBB/04') ||
+      upper.includes('DGBB/06') ||
+      upper.includes('DGBB/03') ||
+      upper.includes('DGBB/07')
+    ) {
+      return 'INNER RING';
+    }
+  }
+
+  // TRB Ring Section resolution
+  if (upper.includes('09') || upper.includes('17')) return 'Assembly';
   if (
     upper.includes('06') ||
     upper.includes('07') ||
@@ -603,7 +937,7 @@ const getRingSectionFromFormKey = (formKey = '', fallback = '') => {
     upper.includes('08-2') ||
     upper.includes('08-OR')
   ) {
-    return 'OUTER RING';
+    return 'Outer Ring';
   }
   if (
     upper.includes('02') ||
@@ -692,6 +1026,7 @@ const getRecordAttachmentInfo = (rec) => {
 
 const isOuterRingTrackGrinding = (formKey = '', op = '', ringSection = '') => {
   const upperKey = (formKey || '').toUpperCase();
+  if (upperKey.includes('DGBB')) return false;
   const upperOp = (op || '').toUpperCase();
   const upperRing = (ringSection || '').toUpperCase();
 
@@ -704,6 +1039,45 @@ const isOuterRingTrackGrinding = (formKey = '', op = '', ringSection = '') => {
 };
 
 const getTableDataForForm = (formKey = '', op = '', ringSection = '') => {
+  const upperKey = (formKey || '').toUpperCase();
+  const upperOp = (op || '').toUpperCase();
+  const upperRing = (ringSection || '').toUpperCase();
+
+  // DGBB checks
+  if (upperKey.includes('DGBB') || upperRing.includes('DGBB')) {
+    if (upperKey.includes('03A') || upperOp.includes('AUTO BORE GAUGE') || upperOp.includes('POKA YOKE')) {
+      return JSON.parse(JSON.stringify(defaultDgbb03aTableData));
+    }
+    if (upperKey.includes('ASSEMBLY') || upperKey.includes('DGBB/16') || upperOp.includes('SET OF A RECORD')) {
+      return JSON.parse(JSON.stringify(defaultDgbbAssemblyTableData));
+    }
+    if (upperKey.includes('DGBB/04') || upperOp.includes('IR FACE')) {
+      return JSON.parse(JSON.stringify(defaultDgbb04TableData));
+    }
+    if (upperKey.includes('DGBB/06') || upperOp.includes('IR GROOVE GRINDING')) {
+      return JSON.parse(JSON.stringify(defaultDgbb06TableData));
+    }
+    if (upperKey.includes('DGBB/03') || upperOp.includes('BORE GRINDING')) {
+      return JSON.parse(JSON.stringify(defaultDgbb03TableData));
+    }
+    if (upperKey.includes('DGBB/07') || upperOp.includes('IR GROOVE HONING')) {
+      return JSON.parse(JSON.stringify(defaultDgbb07TableData));
+    }
+    if (upperKey.includes('DGBB/05') || upperOp.includes('OR FACE')) {
+      return JSON.parse(JSON.stringify(defaultDgbb05TableData));
+    }
+    if (upperKey.includes('DGBB/08') || upperOp.includes('OD GRINDING')) {
+      return JSON.parse(JSON.stringify(defaultDgbb08TableData));
+    }
+    if (upperKey.includes('DGBB/09') || upperOp.includes('OR GROOVE GRINDING')) {
+      return JSON.parse(JSON.stringify(defaultDgbb09TableData));
+    }
+    if (upperKey.includes('DGBB/10') || upperOp.includes('OR GROOVE HONING')) {
+      return JSON.parse(JSON.stringify(defaultDgbb10TableData));
+    }
+  }
+
+  // TRB checks
   if (isQualityEquipmentsForm(formKey, op)) {
     return JSON.parse(JSON.stringify(defaultQualityEquipmentsTableData));
   }
@@ -1247,22 +1621,53 @@ const initialDatabase = [
 ];
 
 const FORM_METADATA = {
-  'SKF/QA/TRB/02': { formatNo: 'SKF/QA/TRB/02', operation: 'TRACK GRINDING' },
-  'SKF/QA/TRB/03-1': { formatNo: 'SKF/QA/TRB/03', operation: 'BORE GRINDING (1)' },
-  'SKF/QA/TRB/03-2': { formatNo: 'SKF/QA/TRB/03', operation: 'BORE GRINDING (2)' },
-  'SKF/QA/TRB/04': { formatNo: 'SKF/QA/TRB/04', operation: 'FLANGE GRINDING' },
-  'SKF/QA/TRB/05': { formatNo: 'SKF/QA/TRB/05', operation: 'TRACK HONNING' },
-  'SKF/QA/TRB/06-1': { formatNo: 'SKF/QA/TRB/06', operation: 'TRACK GRINDING (1)' },
-  'SKF/QA/TRB/06-2': { formatNo: 'SKF/QA/TRB/06', operation: 'TRACK GRINDING (2)' },
-  'SKF/QA/TRB/07-1': { formatNo: 'SKF/QA/TRB/07', operation: 'TRACK HONNING (1)' },
-  'SKF/QA/TRB/07-2': { formatNo: 'SKF/QA/TRB/07', operation: 'TRACK HONNING (2)' },
-  'SKF/QA/TRB/08': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
-  'SKF/QA/TRB/08-OR': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
-  'SKF/QA/TRB/08-IR': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
-  'SKF/QA/TRB/08-1': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
-  'SKF/QA/TRB/08-2': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING' },
-  'SKF/QA/TRB/09': { formatNo: 'SKF/QA/TRB/09', operation: 'ASSEMBLY' },
-  'SKF/QA/TRB/17': { formatNo: 'SKF/QA/TRB/17', operation: 'QUALITY EQUIPMENTS' }
+  // TRB Sheets
+  'SKF/QA/TRB/02': { formatNo: 'SKF/QA/TRB/02', operation: 'TRACK GRINDING', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/03-1': { formatNo: 'SKF/QA/TRB/03', operation: 'BORE GRINDING (1)', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/03-2': { formatNo: 'SKF/QA/TRB/03', operation: 'BORE GRINDING (2)', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/04': { formatNo: 'SKF/QA/TRB/04', operation: 'FLANGE GRINDING', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/05': { formatNo: 'SKF/QA/TRB/05', operation: 'TRACK HONNING', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/06-1': { formatNo: 'SKF/QA/TRB/06', operation: 'TRACK GRINDING (1)', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/06-2': { formatNo: 'SKF/QA/TRB/06', operation: 'TRACK GRINDING (2)', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/07-1': { formatNo: 'SKF/QA/TRB/07', operation: 'TRACK HONNING (1)', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/07-2': { formatNo: 'SKF/QA/TRB/07', operation: 'TRACK HONNING (2)', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/08': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/08-OR': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/08-IR': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/08-1': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/08-2': { formatNo: 'SKF/QA/TRB/08', operation: 'MARKING', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/09': { formatNo: 'SKF/QA/TRB/09', operation: 'ASSEMBLY', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+  'SKF/QA/TRB/17': { formatNo: 'SKF/QA/TRB/17', operation: 'QUALITY EQUIPMENTS', revisionNo: '1', revDate: '14/07', prepBy: 'AVS', appdBy: 'SS' },
+
+  // DGBB Sheets
+  'SKF/QA/DGBB/04': { formatNo: 'SKF/QA/DGBB/04', operation: 'IR FACE GRINDING', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/06': { formatNo: 'SKF/QA/DGBB/06', operation: 'IR GROOVE GRINDING', revisionNo: '2', revDate: '15/05', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/03-1': { formatNo: 'SKF/QA/DGBB/03', operation: 'BORE GRINDING (1)', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/03-2': { formatNo: 'SKF/QA/DGBB/03', operation: 'BORE GRINDING (2)', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/03A': { formatNo: 'SKF/QA/DGBB/03A', operation: 'AUTO BORE GAUGE (POKA YOKE)', revisionNo: '1', revDate: '16/11', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/07': { formatNo: 'SKF/QA/DGBB/07', operation: 'IR GROOVE HONING', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/05': { formatNo: 'SKF/QA/DGBB/05', operation: 'OR FACE GRINDING', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/08': { formatNo: 'SKF/QA/DGBB/08', operation: 'OD GRINDING', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/09-1': { formatNo: 'SKF/QA/DGBB/09', operation: 'OR GROOVE GRINDING (1)', revisionNo: '2', revDate: '15/05', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/09-2': { formatNo: 'SKF/QA/DGBB/09', operation: 'OR GROOVE GRINDING (2)', revisionNo: '2', revDate: '15/05', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/10-1': { formatNo: 'SKF/QA/DGBB/10', operation: 'OR GROOVE HONING (1)', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/10-2': { formatNo: 'SKF/QA/DGBB/10', operation: 'OR GROOVE HONING (2)', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/10-ASSEMBLY': { formatNo: 'SKF/QA/DGBB/16', operation: 'SET OF A RECORD/ASSEMBLY', revisionNo: '2', revDate: '23/01', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Assembly' },
+
+  // DGBB Full String Aliases
+  'SKF/QA/DGBB/04/IR FACE GRINDING': { formatNo: 'SKF/QA/DGBB/04', operation: 'IR FACE GRINDING', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/06/IR GROOVE GRINDING': { formatNo: 'SKF/QA/DGBB/06', operation: 'IR GROOVE GRINDING', revisionNo: '2', revDate: '15/05', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/03/BORE GRINDING (1)': { formatNo: 'SKF/QA/DGBB/03', operation: 'BORE GRINDING (1)', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/03/BORE GRINDING (2)': { formatNo: 'SKF/QA/DGBB/03', operation: 'BORE GRINDING (2)', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/03A/AUTO BORE GAUGE (POKA YOKE)': { formatNo: 'SKF/QA/DGBB/03A', operation: 'AUTO BORE GAUGE (POKA YOKE)', revisionNo: '1', revDate: '16/11', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/07/IR GROOVE HONING': { formatNo: 'SKF/QA/DGBB/07', operation: 'IR GROOVE HONING', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'INNER RING' },
+  'SKF/QA/DGBB/05/OR FACE GRINDING': { formatNo: 'SKF/QA/DGBB/05', operation: 'OR FACE GRINDING', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/08/OD GRINDING': { formatNo: 'SKF/QA/DGBB/08', operation: 'OD GRINDING', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/09/OR GROOVE GRINDING (1)': { formatNo: 'SKF/QA/DGBB/09', operation: 'OR GROOVE GRINDING (1)', revisionNo: '2', revDate: '15/05', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/09/OR GROOVE GRINDING (2)': { formatNo: 'SKF/QA/DGBB/09', operation: 'OR GROOVE GRINDING (2)', revisionNo: '2', revDate: '15/05', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/10/OR GROOVE HONING (1)': { formatNo: 'SKF/QA/DGBB/10', operation: 'OR GROOVE HONING (1)', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/10/OR GROOVE HONING (2)': { formatNo: 'SKF/QA/DGBB/10', operation: 'OR GROOVE HONING (2)', revisionNo: '1', revDate: '14/12', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Outer Ring' },
+  'SKF/QA/DGBB/10/SET OF A RECORD/ASSEMBLY': { formatNo: 'SKF/QA/DGBB/16', operation: 'SET OF A RECORD/ASSEMBLY', revisionNo: '2', revDate: '23/01', prepBy: 'SP', appdBy: 'BBJ', grinding: 'Assembly' }
 };
 
 const parseDiagonalValue = (val) => {
@@ -1280,6 +1685,20 @@ const parseDiagonalValue = (val) => {
     return { top: parts[0].trim(), bottom: parts.slice(1).join('\n').trim() };
   }
   return { top: str, bottom: '' };
+};
+
+
+const renderRemarksDisplay = (remarks) => {
+  if (!remarks || remarks === 'ACCEPTED / REJECTED') {
+    return 'ACCEPTED / REJECTED';
+  }
+  if (remarks === 'ACCEPTED') {
+    return <span style={{ color: '#15803d', fontWeight: 'bold' }}>ACCEPTED</span>;
+  }
+  if (remarks === 'REJECTED') {
+    return <span style={{ color: '#b91c1c', fontWeight: 'bold' }}>REJECTED</span>;
+  }
+  return remarks;
 };
 
 function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) {
@@ -1307,42 +1726,52 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
     reasonSelected: record.reasonSelected || null
   };
 
-  const isQualityEquipments = isQualityEquipmentsForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation);
-  const isAssembly = !isQualityEquipments && isAssemblyForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation);
-  const isMarking = !isQualityEquipments && !isAssembly && isMarkingForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation, record?.ringSection || formData.grinding);
-  const isFlangeGrinding = !isQualityEquipments && !isAssembly && !isMarking && ((record?.operation || formData.operation || '').toUpperCase().includes('FLANGE') ||
+  const isDgbb = isDgbbFormKey(record?.formatNo || formData.formatNo, record?.section);
+  const isDgbbPokaYoke = isDgbb && isDgbbPokaYokeForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation);
+  const isDgbbAssembly = isDgbb && !isDgbbPokaYoke && isDgbbAssemblyForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation);
+  const isDgbbGrinding = isDgbb && !isDgbbPokaYoke && !isDgbbAssembly;
+
+  const isQualityEquipments = !isDgbb && isQualityEquipmentsForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation);
+  const isAssembly = !isDgbb && !isQualityEquipments && isAssemblyForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation);
+  const isMarking = !isDgbb && !isQualityEquipments && !isAssembly && isMarkingForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation, record?.ringSection || formData.grinding);
+  const isFlangeGrinding = !isDgbb && !isQualityEquipments && !isAssembly && !isMarking && ((record?.operation || formData.operation || '').toUpperCase().includes('FLANGE') ||
     (record?.formatNo || formData.formatNo || '').includes('TRB/04'));
-  const isBoreGrinding = !isQualityEquipments && !isAssembly && !isMarking && ((record?.operation || formData.operation || '').toUpperCase().includes('BORE') ||
+  const isBoreGrinding = !isDgbb && !isQualityEquipments && !isAssembly && !isMarking && ((record?.operation || formData.operation || '').toUpperCase().includes('BORE') ||
     (record?.formatNo || formData.formatNo || '').includes('TRB/03'));
-  const isInnerHoning = !isQualityEquipments && !isAssembly && !isMarking && isInnerRingTrackHoningForm(
+  const isInnerHoning = !isDgbb && !isQualityEquipments && !isAssembly && !isMarking && isInnerRingTrackHoningForm(
     record?.formatNo || formData.formatNo || '',
     record?.operation || formData.operation || '',
     record?.ringSection || formData.grinding || ''
   );
-  const isOuterHoning = !isQualityEquipments && !isAssembly && !isMarking && isOuterRingTrackHoningForm(
+  const isOuterHoning = !isDgbb && !isQualityEquipments && !isAssembly && !isMarking && isOuterRingTrackHoningForm(
     record?.formatNo || formData.formatNo || '',
     record?.operation || formData.operation || '',
     record?.ringSection || formData.grinding || ''
   );
   const isHoning = isInnerHoning || isOuterHoning;
-  const isOuterGrinding = !isQualityEquipments && !isAssembly && !isMarking && ((record?.formatNo || formData.formatNo || '').includes('TRB/06') ||
+  const isOuterGrinding = !isDgbb && !isQualityEquipments && !isAssembly && !isMarking && ((record?.formatNo || formData.formatNo || '').includes('TRB/06') ||
     ((record?.ringSection || formData.grinding || '').toUpperCase().includes('OUTER') && !isHoning && !isBoreGrinding && !isFlangeGrinding));
-  const fallbackTableData = isQualityEquipments
-    ? defaultQualityEquipmentsTableData
-    : (isAssembly
-      ? defaultAssemblyTableData
-      : (isMarking
-        ? defaultMarkingTableData
-        : (isFlangeGrinding
-          ? defaultFlangeGrindingTableData
-          : (isBoreGrinding
-            ? defaultBoreGrindingTableData
-            : (isInnerHoning
-              ? defaultInnerRingTrackHoningTableData
-              : (isOuterHoning
-                ? defaultOuterRingTrackHoningTableData
-                : (isOuterGrinding ? defaultOuterRingTrackGrindingTableData : defaultInitialTableData)))))));
+
+  const fallbackTableData = isDgbb
+    ? getTableDataForForm(record?.formatNo || formData.formatNo, record?.operation || formData.operation, record?.ringSection || formData.grinding)
+    : (isQualityEquipments
+      ? defaultQualityEquipmentsTableData
+      : (isAssembly
+        ? defaultAssemblyTableData
+        : (isMarking
+          ? defaultMarkingTableData
+          : (isFlangeGrinding
+            ? defaultFlangeGrindingTableData
+            : (isBoreGrinding
+              ? defaultBoreGrindingTableData
+              : (isInnerHoning
+                ? defaultInnerRingTrackHoningTableData
+                : (isOuterHoning
+                  ? defaultOuterRingTrackHoningTableData
+                  : (isOuterGrinding ? defaultOuterRingTrackGrindingTableData : defaultInitialTableData))))))));
   const tableData = record.tableData || fallbackTableData;
+
+  const meta = FORM_METADATA[record?.formatNo || formData.formatNo];
 
   const reasons = [
     { id: 1, label: "1) Type Change" },
@@ -1408,29 +1837,45 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                 <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '900', fontFamily: 'Impact, sans-serif', letterSpacing: '1px' }}>SKF</h1>
               </div>
               <div style={{ borderBottom: '1px solid #000', padding: '4px 0', fontSize: '10px', fontWeight: 'bold' }}>
-                SKF INDIA LTD,<br />TRB - ABU
+                SKF INDIA LTD,<br />{isDgbb ? 'DGBB' : 'TRB - ABU'}
               </div>
               <div style={{ padding: '4px 0', fontSize: '10px', fontWeight: 'bold' }}>
                 ABU QA-HB
               </div>
             </td>
             <td rowSpan="4" style={{ textAlign: 'center', fontSize: isQualityEquipments ? '17px' : '19px', fontWeight: 'bold', width: '46%', verticalAlign: 'middle', letterSpacing: '0.5px', boxSizing: 'border-box' }}>
-              {isQualityEquipments ? 'FIRST OFF INSPECTION QUALITY EQUIPMENTS' : 'FIRST OFF INSPECTION'}
+              {isQualityEquipments
+                ? 'FIRST OFF INSPECTION QUALITY EQUIPMENTS'
+                : isDgbbAssembly
+                  ? (
+                    <div>
+                      <div>SET UP APPROVAL</div>
+                      <div style={{ fontSize: '14px', marginTop: '4px', color: '#1e3a8a' }}>ASSEMBLY</div>
+                    </div>
+                  )
+                  : (
+                    <div>
+                      <div>FIRST OFF INSPECTION</div>
+                      {formData.operation && (
+                        <div style={{ fontSize: '13.5px', marginTop: '4px', color: '#1e3a8a' }}>{formData.operation}</div>
+                      )}
+                    </div>
+                  )}
             </td>
             <td style={{ fontSize: '11px', padding: '4px 6px', width: '18%', fontWeight: 'bold', boxSizing: 'border-box' }}>Format No.:</td>
             <td style={{ fontSize: '11px', padding: '4px 6px', width: '14%', fontWeight: 'bold', wordBreak: 'break-all', boxSizing: 'border-box' }}>{formData.formatNo}</td>
           </tr>
           <tr>
             <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Revision No.:</td>
-            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>1</td>
+            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{formData.revisionNo || meta?.revisionNo || '1'}</td>
           </tr>
           <tr>
             <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Rev. Date:( YY/MM) :</td>
-            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>14/07</td>
+            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{formData.revDate || meta?.revDate || '14/07'}</td>
           </tr>
           <tr>
-            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Prep. By: AVS</td>
-            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Appd By: SS</td>
+            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Prep. By: {formData.prepBy || meta?.prepBy || 'AVS'}</td>
+            <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Appd By: {formData.appdBy || meta?.appdBy || 'SS'}</td>
           </tr>
         </tbody>
       </table>
@@ -1505,6 +1950,91 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               </td>
               <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
                 <b>OPERATION :</b> {formData.operation || 'MARKING'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      ) : isDgbbAssembly ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+          <tbody>
+            <tr>
+              <td style={{ width: '50%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>CHANNEL NO. :</b> {formData.channelNo || ''}
+              </td>
+              <td style={{ width: '50%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>SHIFT :</b> {formData.shift || ''}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>DATE :</b> {formatDateToDDMMYY(formData.date)}
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>TYPE :</b> {formData.type || ''}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      ) : isDgbbPokaYoke ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+          <tbody>
+            <tr>
+              <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>OPERATION :</b> {formData.operation || 'AUTO BORE GAUGE (POKA YOKE)'}
+              </td>
+              <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>DATE :</b> {formatDateToDDMMYY(formData.date)}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>CHANNEL NO. :</b> {formData.channelNo || ''}
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>SHIFT :</b> {formData.shift || ''}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>TYPE :</b> {formData.type || ''}
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>MACHINE NO. :</b> {formData.machineNo || ''}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      ) : isDgbb ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+          <tbody>
+            <tr>
+              <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span><b>OPERATION :</b> {formData.operation || ''}</span>
+                  {formData.tv && <div><b>T.V =</b> {formData.tv}</div>}
+                </div>
+              </td>
+              <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>DATE :</b> {formatDateToDDMMYY(formData.date)}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span><b>CHANNEL NO. :</b> {formData.channelNo || ''}</span>
+                  {formData.mv && <div><b>M.V =</b> {formData.mv}</div>}
+                </div>
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>SHIFT :</b> {formData.shift || ''}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>TYPE :</b> {formData.type || ''}
+              </td>
+              <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                <b>MACHINE NO. :</b> {formData.machineNo || ''}
               </td>
             </tr>
           </tbody>
@@ -1642,24 +2172,154 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
             })}
           </tbody>
         </table>
+      ) : isDgbbAssembly ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
+          <thead>
+            <tr style={{ backgroundColor: '#f9fafb' }}>
+              <th style={{ ...tableCellStyle, width: '5%', fontWeight: 'bold' }}>Sr. No.</th>
+              <th style={{ ...tableCellStyle, width: '16%', fontWeight: 'bold' }}>Process</th>
+              <th style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold' }}>Equipment</th>
+              <th style={{ ...tableCellStyle, width: '22%', fontWeight: 'bold' }}>Parameter</th>
+              <th style={{ ...tableCellStyle, width: '17%', fontWeight: 'bold' }}>Apparatus</th>
+              <th style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>OK</th>
+              <th style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>NOT OK</th>
+              <th style={{ ...tableCellStyle, width: '10%', fontWeight: 'bold' }}>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableData.map((row, rIdx) => {
+              const isOk = row.status === 'OK' || row.ok === true || row.status === 'ok' || row.status === '✓';
+              const isNotOk = row.status === 'NOT OK' || row.notOk === true || row.status === 'not ok' || row.status === '✗';
+              return (
+                <tr key={row.id || `dgbb-as-${rIdx}`}>
+                  <td style={{ ...tableCellStyle, width: '5%' }}>{rIdx + 1}</td>
+                  <td style={{ ...tableCellStyle, width: '16%', textAlign: 'left', padding: '3px 6px', fontWeight: 'bold' }}>{row.process}</td>
+                  <td style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '3px 6px' }}>{row.equipment}</td>
+                  <td style={{ ...tableCellStyle, width: '22%', textAlign: 'left', padding: '3px 6px' }}>{row.parameter}</td>
+                  <td style={{ ...tableCellStyle, width: '17%', textAlign: 'left', padding: '3px 6px' }}>{row.apparatus}</td>
+                  <td style={{ ...tableCellStyle, width: '6%' }}>
+                    {isOk ? <CheckIcon size={15} color="#16a34a" strokeWidth={3} /> : ''}
+                  </td>
+                  <td style={{ ...tableCellStyle, width: '6%' }}>
+                    {isNotOk ? <CrossIcon size={15} color="#dc2626" strokeWidth={3} /> : ''}
+                  </td>
+                  <td style={{ ...tableCellStyle, width: '10%', padding: '2px 4px', fontSize: '10px' }}>
+                    {row.remarks || ''}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : isDgbbPokaYoke ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
+          <thead>
+            <tr style={{ backgroundColor: '#f9fafb' }}>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>SR. NO.</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold' }}>PARAMETER</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>STANDARD</th>
+              <th colSpan="2" style={{ ...tableCellStyle, width: '24%', fontWeight: 'bold', padding: '3px 0' }}>TRIAL 1</th>
+              <th colSpan="2" style={{ ...tableCellStyle, width: '24%', fontWeight: 'bold', padding: '3px 0' }}>TRIAL 2</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>REMARKS</th>
+            </tr>
+            <tr style={{ backgroundColor: '#f9fafb' }}>
+              <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>1</th>
+              <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>2</th>
+              <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>1</th>
+              <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>2</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableData.map((row, rIdx) => {
+              if (row.rowType === 'size') {
+                return (
+                  <tr key={row.id || `py-${rIdx}`}>
+                    {row.isGroupStart && (
+                      <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>
+                        {Math.floor(rIdx / 2) + 1}
+                      </td>
+                    )}
+                    {row.isGroupStart && (
+                      <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
+                        <div>{row.parameter}</div>
+                        {row.colorLabel && <div style={{ fontSize: '10px', color: '#475569' }}>({row.colorLabel})</div>}
+                      </td>
+                    )}
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
+                      <div>{row.subType}</div>
+                      <input
+                          type="text"
+                          value={row.tol || ''}
+                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'tol', e.target.value)}
+                          placeholder="Tol"
+                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold', width: '100%', textAlign: 'center', marginTop: '2px' }}
+                        />
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '12%' }}>{renderSampleValue(row.trial1_1)}</td>
+                    <td style={{ ...tableCellStyle, width: '12%' }}>{renderSampleValue(row.trial1_2)}</td>
+                    <td style={{ ...tableCellStyle, width: '12%' }}>{renderSampleValue(row.trial2_1)}</td>
+                    <td style={{ ...tableCellStyle, width: '12%' }}>{renderSampleValue(row.trial2_2)}</td>
+                    {row.isGroupStart && (
+                      <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px' }}>
+                        {renderRemarksDisplay(row.remarks)}
+                      </td>
+                    )}
+                  </tr>
+                );
+              }
+              if (row.rowType === 'sorting') {
+                return (
+                  <tr key={row.id || `py-${rIdx}`}>
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
+                      <div>{row.subType}</div>
+                      <div style={{ fontSize: '9.5px', color: '#475569' }}>{row.chuteText || row.tol}</div>
+                    </td>
+                    <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>{renderSampleValue(row.trial1Check || '✓')}</td>
+                    <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>{renderSampleValue(row.trial2Check || '✓')}</td>
+                  </tr>
+                );
+              }
+              // Simple row (Tolerance, Appearance, Rejection Box)
+              return (
+                <tr key={row.id || `py-${rIdx}`}>
+                  <td style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>{rIdx - 2}</td>
+                  <td style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
+                    {row.parameter}
+                  </td>
+                  <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
+                    {row.tol}
+                  </td>
+                  <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>{renderSampleValue(row.trial1_1 || row.trial1 || '')}</td>
+                  <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>{renderSampleValue(row.trial2_1 || row.trial2 || '')}</td>
+                  <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px' }}>
+                    {renderRemarksDisplay(row.remarks)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11.5px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
         <thead>
           <tr style={{ backgroundColor: '#f9fafb' }}>
-            <th rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', fontWeight: 'bold', padding: '4px', boxSizing: 'border-box' }}>PARAMETER</th>
-            <th rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>SYMBOL</th>
-            <th rowSpan="2" style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold', fontSize: '11.5px', boxSizing: 'border-box' }}>TOL (µm)</th>
+            <th rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), fontWeight: 'bold', padding: '4px', boxSizing: 'border-box' }}>PARAMETER</th>
+            <th rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>SYMBOL</th>
+            <th rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', fontWeight: 'bold', fontSize: '11.5px', boxSizing: 'border-box' }}>TOL (µm)</th>
             {isAssembly && (
               <th rowSpan="2" style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', fontSize: '11px', boxSizing: 'border-box' }}>SAMPLE SIZE</th>
             )}
-            <th colSpan="5" style={{ ...tableCellStyle, width: isAssembly ? '40%' : '45%', fontWeight: 'bold', fontSize: '11.5px', padding: '4px 0', boxSizing: 'border-box' }}>{isAssembly ? 'READINGS' : 'SAMPLE NO.'}</th>
+            <th colSpan="5" style={{ ...tableCellStyle, width: isDgbb ? '38%' : (isAssembly ? '40%' : '45%'), fontWeight: 'bold', fontSize: '11.5px', padding: '4px 0', boxSizing: 'border-box' }}>{isDgbb ? 'RING NO.' : (isAssembly ? 'READINGS' : 'SAMPLE NO.')}</th>
+            {isDgbb && (
+              <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '11px', boxSizing: 'border-box' }}>REMARKS</th>
+            )}
           </tr>
           <tr style={{ backgroundColor: '#f9fafb' }}>
-            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>1</th>
-            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>2</th>
-            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>3</th>
-            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>4</th>
-            <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>5</th>
+            <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>1</th>
+            <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>2</th>
+            <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>3</th>
+            <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>4</th>
+            <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>5</th>
           </tr>
         </thead>
         <tbody>
@@ -1670,23 +2330,28 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               return (
                 <React.Fragment key={`doc-double-row-${row.id}`}>
                   <tr>
-                    <td rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
-                    <td rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
-                    <td rowSpan="2" style={{ ...tableCellStyle, width: '13%', boxSizing: 'border-box' }}>{renderSampleValue(row.tol)}</td>
+                    <td rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
+                    <td rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
+                    <td rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', boxSizing: 'border-box' }}>{renderSampleValue(row.tol)}</td>
                     {isAssembly && (
                       <td rowSpan="2" style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
                         {row.sampleSize || ''}
                       </td>
                     )}
                     {r1.map((val, sIdx) => (
-                      <td key={`r1-${sIdx}`} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
+                      <td key={`r1-${sIdx}`} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), position: 'relative', boxSizing: 'border-box' }}>
                         {renderSampleValue(val)}
                       </td>
                     ))}
+                    {isDgbb && (
+                      <td rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px', boxSizing: 'border-box' }}>
+                        {renderRemarksDisplay(row.remarks)}
+                      </td>
+                    )}
                   </tr>
                   <tr>
                     {r2.map((val, sIdx) => (
-                      <td key={`r2-${sIdx}`} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
+                      <td key={`r2-${sIdx}`} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), position: 'relative', boxSizing: 'border-box' }}>
                         {renderSampleValue(val)}
                       </td>
                     ))}
@@ -1699,13 +2364,13 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               const tolVal = parseDiagonalValue(row.tol);
               return (
                 <tr key={`doc-row-${row.id}`}>
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.parameter}
                   </td>
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.symbol}
                   </td>
-                  <td style={{ ...tableCellStyle, width: '13%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: '30px' }}>
                       <span style={{ fontSize: '10.5px', fontWeight: 'bold', lineHeight: '13px' }}>{tolVal.top || 'Q'}</span>
                       <span style={{ fontSize: '10.5px', fontWeight: 'bold', lineHeight: '13px' }}>{tolVal.bottom || '66'}</span>
@@ -1719,7 +2384,7 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                   {(row.samples || []).map((val, sIdx) => {
                     const vib = parseVibrationSample(val);
                     return (
-                      <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', padding: 0, boxSizing: 'border-box' }}>
+                      <td key={sIdx} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), padding: 0, boxSizing: 'border-box' }}>
                         <div style={{ display: 'flex', width: '100%', height: '100%', minHeight: '30px' }}>
                           <div style={{ width: '50%', borderRight: '1px solid #000', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                             <span style={{ borderBottom: '0.5px solid #888', fontSize: '9.5px', fontWeight: 'bold', lineHeight: '14px', textAlign: 'center' }}>{vib.sub1.top || ''}</span>
@@ -1733,6 +2398,11 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                       </td>
                     );
                   })}
+                  {isDgbb && (
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px', boxSizing: 'border-box' }}>
+                      {renderRemarksDisplay(row.remarks)}
+                    </td>
+                  )}
                 </tr>
               );
             }
@@ -1742,13 +2412,13 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               const isTolNull = (tolVal.top === 'nul' || tolVal.top === 'NUL') && (tolVal.bottom === 'nul' || tolVal.bottom === 'NUL');
               return (
                 <tr key={`doc-row-${row.id}`}>
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.parameter}
                   </td>
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.symbol}
                   </td>
-                  <td style={{ ...tableCellStyle, width: '13%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
                     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '28px' }}>
                       <svg
                         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
@@ -1775,10 +2445,15 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                     </td>
                   )}
                   {(row.samples || []).map((val, sIdx) => (
-                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), position: 'relative', boxSizing: 'border-box' }}>
                       {renderSampleValue(val)}
                     </td>
                   ))}
+                  {isDgbb && (
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px', boxSizing: 'border-box' }}>
+                      {renderRemarksDisplay(row.remarks)}
+                    </td>
+                  )}
                 </tr>
               );
             }
@@ -1788,13 +2463,13 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               const isTolNull = (tolVal.top === 'nul' || tolVal.top === 'NUL') && (tolVal.bottom === 'nul' || tolVal.bottom === 'NUL');
               return (
                 <tr key={`doc-row-${row.id}`}>
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.parameter}
                   </td>
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.symbol}
                   </td>
-                  <td style={{ ...tableCellStyle, width: '13%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
                     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '28px' }}>
                       <svg
                         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
@@ -1824,7 +2499,7 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                     const dVal = parseDiagonalValue(val);
                     const isNull = (dVal.top === 'nul' || dVal.top === 'NUL') && (dVal.bottom === 'nul' || dVal.bottom === 'NUL');
                     return (
-                      <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', padding: 0, boxSizing: 'border-box' }}>
+                      <td key={sIdx} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), position: 'relative', padding: 0, boxSizing: 'border-box' }}>
                         <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '28px' }}>
                           <svg
                             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
@@ -1847,6 +2522,11 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                       </td>
                     );
                   })}
+                  {isDgbb && (
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px', boxSizing: 'border-box' }}>
+                      {renderRemarksDisplay(row.remarks)}
+                    </td>
+                  )}
                 </tr>
               );
             }
@@ -1854,10 +2534,10 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
             if (row.isSpanSymbolTol) {
               return (
                 <tr key={`doc-row-${row.id}`}>
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.parameter}
                   </td>
-                  <td colSpan="2" style={{ ...tableCellStyle, width: '27%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td colSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '24%' : '27%', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.symbol}
                   </td>
                   {isAssembly && (
@@ -1866,10 +2546,15 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                     </td>
                   )}
                   {row.samples.map((val, sIdx) => (
-                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), position: 'relative', boxSizing: 'border-box' }}>
                       {renderSampleValue(val)}
                     </td>
                   ))}
+                  {isDgbb && (
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px', boxSizing: 'border-box' }}>
+                      {renderRemarksDisplay(row.remarks)}
+                    </td>
+                  )}
                 </tr>
               );
             }
@@ -1878,11 +2563,11 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               return (
                 <tr key={`doc-row-${row.id}`}>
                   {row.isFirstInGroup && (
-                    <td rowSpan={row.groupRowSpan || 2} style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td rowSpan={row.groupRowSpan || 2} style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.parameter || '• Visual Inspection'}
                     </td>
                   )}
-                  <td colSpan="2" style={{ ...tableCellStyle, width: '27%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                  <td colSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '24%' : '27%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.subParameter}
                   </td>
                   {isAssembly && (
@@ -1891,10 +2576,15 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                     </td>
                   )}
                   {row.samples.map((val, sIdx) => (
-                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), position: 'relative', boxSizing: 'border-box' }}>
                       {renderSampleValue(val)}
                     </td>
                   ))}
+                  {isDgbb && (
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px', boxSizing: 'border-box' }}>
+                      {renderRemarksDisplay(row.remarks)}
+                    </td>
+                  )}
                 </tr>
               );
             }
@@ -1903,22 +2593,27 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
               return (
                 <tr key={`doc-row-${row.id}`}>
                   {row.isFirstInGroup && (
-                    <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td rowSpan="3" style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       • Track VKR (µm/s)
                     </td>
                   )}
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.subParameter}</td>
-                  <td style={{ ...tableCellStyle, width: '13%', position: 'relative', boxSizing: 'border-box' }}>{renderSampleValue(row.tol)}</td>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.subParameter}</td>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', position: 'relative', boxSizing: 'border-box' }}>{renderSampleValue(row.tol)}</td>
                   {isAssembly && (
                     <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.sampleSize || ''}
                     </td>
                   )}
                   {row.samples.map((val, sIdx) => (
-                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), position: 'relative', boxSizing: 'border-box' }}>
                       {renderSampleValue(val)}
                     </td>
                   ))}
+                  {isDgbb && (
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px', boxSizing: 'border-box' }}>
+                      {renderRemarksDisplay(row.remarks)}
+                    </td>
+                  )}
                 </tr>
               );
             }
@@ -1928,15 +2623,15 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                 <tr key={`doc-row-${row.id}`}>
                   {row.isFirstInGroup && (
                     <>
-                      <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      <td rowSpan="3" style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                         {row.parameter || 'Track VKR (µm/s)'}
                       </td>
-                      <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box', whiteSpace: 'pre-line', lineHeight: '1.4' }}>
+                      <td rowSpan="3" style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box', whiteSpace: 'pre-line', lineHeight: '1.4' }}>
                         {row.symbol || "L , M , H\nor\nW Parameters"}
                       </td>
                     </>
                   )}
-                  <td style={{ ...tableCellStyle, width: '13%', position: 'relative', boxSizing: 'border-box' }}>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', position: 'relative', boxSizing: 'border-box' }}>
                     {renderSampleValue(row.tol)}
                   </td>
                   {isAssembly && (
@@ -1945,29 +2640,39 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
                     </td>
                   )}
                   {row.samples.map((val, sIdx) => (
-                    <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
+                    <td key={sIdx} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), position: 'relative', boxSizing: 'border-box' }}>
                       {renderSampleValue(val)}
                     </td>
                   ))}
+                  {isDgbb && (
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px', boxSizing: 'border-box' }}>
+                      {renderRemarksDisplay(row.remarks)}
+                    </td>
+                  )}
                 </tr>
               );
             }
 
             return (
               <tr key={`doc-row-${row.id}`}>
-                <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', whiteSpace: 'pre-line', boxSizing: 'border-box' }}>{row.parameter}</td>
-                <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
-                <td style={{ ...tableCellStyle, width: '13%', position: 'relative', boxSizing: 'border-box', whiteSpace: 'pre-line', fontSize: row.isStackedTol ? '10px' : '11.5px', lineHeight: '1.2' }}>{renderSampleValue(row.tol)}</td>
+                <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', whiteSpace: 'pre-line', boxSizing: 'border-box' }}>{row.parameter}</td>
+                <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
+                <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', position: 'relative', boxSizing: 'border-box', whiteSpace: 'pre-line', fontSize: row.isStackedTol ? '10px' : '11.5px', lineHeight: '1.2' }}>{renderSampleValue(row.tol)}</td>
                 {isAssembly && (
                   <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
                     {row.sampleSize || ''}
                   </td>
                 )}
                 {row.samples.map((val, sIdx) => (
-                  <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', position: 'relative', boxSizing: 'border-box' }}>
+                  <td key={sIdx} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), position: 'relative', boxSizing: 'border-box' }}>
                     {renderSampleValue(val)}
                   </td>
                 ))}
+                {isDgbb && (
+                  <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px', boxSizing: 'border-box' }}>
+                    {renderRemarksDisplay(row.remarks)}
+                  </td>
+                )}
               </tr>
             );
           })}
@@ -1992,7 +2697,14 @@ function ReportDocumentView({ record, isPrintMode = false, isPdfMode = false }) 
         </div>
       )}
 
-      {isQualityEquipments ? (
+      {isDgbb ? (
+        <div style={{ border: '1px solid #000', borderTop: 'none', padding: '5px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '15px', boxSizing: 'border-box' }}>
+          <b>SET UP APPROVAL :</b>
+          <span style={{ fontWeight: 'bold', textDecoration: (formData.setupApproval === 'APPROVED' || formData.machineReleased === 'YES') ? 'underline' : 'none' }}>
+            {formData.setupApproval || (formData.machineReleased === 'YES' ? 'APPROVED' : (formData.machineReleased === 'NO' ? 'NOT APPROVED' : 'APPROVED / NOT APPROVED'))}
+          </span>
+        </div>
+      ) : isQualityEquipments ? (
         <div style={{ border: '1px solid #000', borderTop: 'none', padding: '5px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '15px', boxSizing: 'border-box' }}>
           <b>Setup Approval :-</b>
           <span style={{ fontWeight: 'bold', textDecoration: (formData.setupApproval === 'Approved' || formData.machineReleased === 'YES') ? 'underline' : 'none' }}>
@@ -2401,6 +3113,73 @@ function ValueOrNullCell({
   );
 }
 
+
+function RemarksSelectCell({ value = '', onChange, style = {} }) {
+  const isAccepted = value === 'ACCEPTED';
+  const isRejected = value === 'REJECTED';
+  const isCustom = value && !isAccepted && !isRejected && value !== 'ACCEPTED / REJECTED';
+  const [editingCustom, setEditingCustom] = useState(isCustom);
+
+  if (editingCustom) {
+    return (
+      <div style={{ display: 'flex', gap: '2px', alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Remark"
+          autoFocus
+          style={{ width: '100%', fontSize: '10px', padding: '2px 4px', border: '1px solid #005a9c', borderRadius: '3px', fontWeight: 'bold', boxSizing: 'border-box' }}
+        />
+        <button
+          type="button"
+          onClick={() => setEditingCustom(false)}
+          title="Back to option select"
+          style={{ border: 'none', background: '#e2e8f0', borderRadius: '3px', cursor: 'pointer', padding: '1px 4px', fontSize: '9px', color: '#475569' }}
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  const currentSelectVal = isAccepted ? 'ACCEPTED' : (isRejected ? 'REJECTED' : '');
+
+  return (
+    <div style={{ width: '100%', boxSizing: 'border-box' }}>
+      <select
+        value={currentSelectVal}
+        onChange={(e) => {
+          if (e.target.value === '__custom__') {
+            setEditingCustom(true);
+          } else {
+            onChange(e.target.value);
+          }
+        }}
+        style={{
+          width: '100%',
+          padding: '2px 3px',
+          borderRadius: '4px',
+          fontSize: '10.5px',
+          fontWeight: 'bold',
+          outline: 'none',
+          cursor: 'pointer',
+          border: '1.5px solid ' + (isAccepted ? '#16a34a' : (isRejected ? '#dc2626' : '#cbd5e1')),
+          backgroundColor: isAccepted ? '#dcfce7' : (isRejected ? '#fee2e2' : '#ffffff'),
+          color: isAccepted ? '#15803d' : (isRejected ? '#b91c1c' : '#475569'),
+          boxSizing: 'border-box',
+          ...style
+        }}
+      >
+        <option value="">-- Select --</option>
+        <option value="ACCEPTED">ACCEPTED</option>
+        <option value="REJECTED">REJECTED</option>
+        <option value="__custom__">✎ Custom remark...</option>
+      </select>
+    </div>
+  );
+}
+
 function DiagonalInputCell({
   value,
   onChange,
@@ -2520,9 +3299,43 @@ function DiagonalInputCell({
 function InspectionTemplate({ printRef, formData, setFormData, tableData, setTableData, onSubmit, onPreview, onAttachmentChange, attachedPdfName }) {
   const [activeVisualCell, setActiveVisualCell] = useState(null); // { rIdx, sIdx }
   const popupRef = useRef(null);
-  const isQualityEquipments = isQualityEquipmentsForm(formData.formatNo, formData.operation);
-  const isAssembly = !isQualityEquipments && isAssemblyForm(formData.formatNo, formData.operation);
-  const isMarking = !isQualityEquipments && !isAssembly && isMarkingForm(formData.formatNo, formData.operation, formData.grinding);
+  const isDgbb = isDgbbFormKey(formData.formatNo, formData.operation, formData.grinding);
+  const isDgbbPokaYoke = isDgbb && isDgbbPokaYokeForm(formData.formatNo, formData.operation);
+  const isDgbbAssembly = isDgbb && isDgbbAssemblyForm(formData.formatNo, formData.operation);
+  const isDgbbGrinding = isDgbb && !isDgbbPokaYoke && !isDgbbAssembly;
+  const isQualityEquipments = !isDgbb && isQualityEquipmentsForm(formData.formatNo, formData.operation);
+  const isAssembly = !isDgbb && !isQualityEquipments && isAssemblyForm(formData.formatNo, formData.operation);
+  const isMarking = !isDgbb && !isQualityEquipments && !isAssembly && isMarkingForm(formData.formatNo, formData.operation, formData.grinding);
+
+  const handleRemarksChange = (rowIndex, value) => {
+    const updatedTable = tableData.map((row, rIdx) => {
+      if (rIdx === rowIndex) {
+        return { ...row, remarks: value };
+      }
+      return row;
+    });
+    setTableData(updatedTable);
+  };
+
+  const handleDgbbAssemblyCellChange = (rowIndex, field, value) => {
+    const updatedTable = tableData.map((row, rIdx) => {
+      if (rIdx === rowIndex) {
+        return { ...row, [field]: value };
+      }
+      return row;
+    });
+    setTableData(updatedTable);
+  };
+
+  const handleDgbbPokaYokeCellChange = (rowIndex, field, value) => {
+    const updatedTable = tableData.map((row, rIdx) => {
+      if (rIdx === rowIndex) {
+        return { ...row, [field]: value };
+      }
+      return row;
+    });
+    setTableData(updatedTable);
+  };
 
   const handleQeCellChange = (rowIndex, field, value) => {
     const updatedTable = tableData.map((row, rIdx) => {
@@ -2907,7 +3720,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
         }}
         style={{
           ...tableCellStyle,
-          width: isAssembly ? '8%' : '9%',
+          width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'),
           padding: 0,
           position: 'relative',
           cursor: 'pointer',
@@ -3185,32 +3998,48 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                   <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '900', fontFamily: 'Impact, sans-serif', letterSpacing: '1px' }}>SKF</h1>
                 </div>
                 <div style={{ borderBottom: '1px solid #000', padding: '4px 0', fontSize: '10px', fontWeight: 'bold' }}>
-                  SKF INDIA LTD,<br />TRB - ABU
+                  SKF INDIA LTD,<br />{isDgbb ? 'DGBB' : 'TRB - ABU'}
                 </div>
                 <div style={{ padding: '4px 0', fontSize: '10px', fontWeight: 'bold' }}>
                   ABU QA-HB
                 </div>
               </td>
               <td rowSpan="4" style={{ textAlign: 'center', fontSize: isQualityEquipments ? '17px' : '19px', fontWeight: 'bold', width: '46%', verticalAlign: 'middle', letterSpacing: '0.5px', boxSizing: 'border-box' }}>
-                {isQualityEquipments ? 'FIRST OFF INSPECTION QUALITY EQUIPMENTS' : 'FIRST OFF INSPECTION'}
+                {isQualityEquipments
+                  ? 'FIRST OFF INSPECTION QUALITY EQUIPMENTS'
+                  : isDgbbAssembly
+                    ? (
+                      <div>
+                        <div>SET UP APPROVAL</div>
+                        <div style={{ fontSize: '14px', marginTop: '4px', color: '#1e3a8a' }}>ASSEMBLY</div>
+                      </div>
+                    )
+                    : (
+                      <div>
+                        <div>FIRST OFF INSPECTION</div>
+                        {formData.operation && (
+                          <div style={{ fontSize: '13.5px', marginTop: '4px', color: '#1e3a8a' }}>{formData.operation}</div>
+                        )}
+                      </div>
+                    )}
               </td>
               <td style={{ fontSize: '11px', padding: '4px 6px', width: '18%', fontWeight: 'bold', boxSizing: 'border-box' }}>Format No.:</td>
               <td style={{ fontSize: '11px', padding: '4px 6px', width: '14%', fontWeight: 'bold', wordBreak: 'break-all', boxSizing: 'border-box' }}>{formData.formatNo}</td>
             </tr>
             <tr>
               <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Revision No.:</td>
-              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>1</td>
+              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{formData.revisionNo || '1'}</td>
             </tr>
             <tr>
               <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>Rev. Date:( YY/MM) :</td>
-              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>14/07</td>
+              <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{formData.revDate || '14/07'}</td>
             </tr>
             <tr>
               <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
-                Prep. By: AVS
+                Prep. By: {formData.prepBy || 'AVS'}
               </td>
               <td style={{ fontSize: '11px', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
-                Appd By: SS
+                Appd By: {formData.appdBy || 'SS'}
               </td>
             </tr>
           </tbody>
@@ -3416,6 +4245,230 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                       style={{ marginLeft: '6px', width: '160px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
                     />
                   </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        ) : isDgbbAssembly ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+            <tbody>
+              <tr>
+                <td style={{ width: '50%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>CHANNEL NO. :</b>
+                    <input
+                      type="text"
+                      value={formData.channelNo || ''}
+                      onChange={(e) => setFormData({ ...formData, channelNo: e.target.value })}
+                      placeholder="e.g. CH2"
+                      style={{ marginLeft: '6px', width: '90px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+                <td style={{ width: '50%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>SHIFT :</b>
+                    <input
+                      type="text"
+                      value={formData.shift || ''}
+                      onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
+                      placeholder="e.g. I"
+                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>DATE :</b>
+                    <input
+                      type="text"
+                      value={formData.date || ''}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, date: formatDateToDDMMYY(e.target.value) })}
+                      placeholder="dd/mm/yy"
+                      style={{ marginLeft: '6px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '95px', fontSize: '11px' }}
+                    />
+                  </div>
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>TYPE :</b>
+                    <input
+                      type="text"
+                      value={formData.type || ''}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      placeholder="Enter Type"
+                      style={{ marginLeft: '6px', width: '180px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        ) : isDgbbPokaYoke ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+            <tbody>
+              <tr>
+                <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <b>OPERATION :</b> {formData.operation || 'AUTO BORE GAUGE (POKA YOKE)'}
+                </td>
+                <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>DATE :</b>
+                    <input
+                      type="text"
+                      value={formData.date || ''}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, date: formatDateToDDMMYY(e.target.value) })}
+                      placeholder="dd/mm/yy"
+                      style={{ marginLeft: '6px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '95px', fontSize: '11px' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>CHANNEL NO. :</b>
+                    <input
+                      type="text"
+                      value={formData.channelNo || ''}
+                      onChange={(e) => setFormData({ ...formData, channelNo: e.target.value })}
+                      placeholder="e.g. CH3"
+                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>SHIFT :</b>
+                    <input
+                      type="text"
+                      value={formData.shift || ''}
+                      onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
+                      placeholder="e.g. I"
+                      style={{ marginLeft: '6px', width: '80px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>TYPE :</b>
+                    <input
+                      type="text"
+                      value={formData.type || ''}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      placeholder="Enter Type"
+                      style={{ marginLeft: '6px', width: '180px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>MACHINE NO. :</b>
+                    <input
+                      type="text"
+                      value={formData.machineNo || ''}
+                      onChange={(e) => setFormData({ ...formData, machineNo: e.target.value })}
+                      placeholder="Machine"
+                      style={{ marginLeft: '6px', width: '100px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        ) : isDgbb ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', fontSize: '11.5px', tableLayout: 'fixed' }} border="1">
+            <tbody>
+              <tr>
+                <td style={{ width: '60%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span><b>OPERATION :</b> {formData.operation || ''}</span>
+                    <div>
+                      <b>T.V =</b>
+                      <input
+                        type="text"
+                        value={formData.tv || ''}
+                        onChange={(e) => setFormData({ ...formData, tv: e.target.value })}
+                        style={{ marginLeft: '5px', width: '65px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px' }}
+                      />
+                    </div>
+                  </div>
+                </td>
+                <td style={{ width: '40%', padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <b>DATE :</b>
+                    <input
+                      type="text"
+                      value={formData.date || ''}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, date: formatDateToDDMMYY(e.target.value) })}
+                      placeholder="dd/mm/yy"
+                      style={{ marginLeft: '6px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '95px', fontSize: '11px' }}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>
+                      <b>CHANNEL NO. :</b>
+                      <input
+                        type="text"
+                        value={formData.channelNo || ''}
+                        onChange={(e) => setFormData({ ...formData, channelNo: e.target.value })}
+                        placeholder="e.g. CH3"
+                        style={{ marginLeft: '5px', width: '65px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                      />
+                    </span>
+                    <div>
+                      <b>M.V =</b>
+                      <input
+                        type="text"
+                        value={formData.mv || ''}
+                        onChange={(e) => setFormData({ ...formData, mv: e.target.value })}
+                        style={{ marginLeft: '5px', width: '60px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px' }}
+                      />
+                    </div>
+                  </div>
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <b>SHIFT :</b>
+                  <input
+                    type="text"
+                    value={formData.shift || ''}
+                    onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
+                    placeholder="I / II"
+                    style={{ marginLeft: '5px', width: '65px', padding: '2px 4px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold' }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <b>TYPE :</b>
+                  <input
+                    type="text"
+                    value={formData.type || ''}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    placeholder="Enter Type"
+                    style={{ marginLeft: '5px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '180px' }}
+                  />
+                </td>
+                <td style={{ padding: '5px 8px', boxSizing: 'border-box' }}>
+                  <b>MACHINE NO. :</b>
+                  <input
+                    type="text"
+                    value={formData.machineNo || ''}
+                    onChange={(e) => setFormData({ ...formData, machineNo: e.target.value })}
+                    placeholder=""
+                    style={{ marginLeft: '5px', padding: '2px 5px', border: '1px solid #ccc', borderRadius: '3px', fontWeight: 'bold', width: '100px' }}
+                  />
                 </td>
               </tr>
             </tbody>
@@ -3679,24 +4732,262 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
               })}
             </tbody>
           </table>
+        ) : isDgbbAssembly ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
+            <thead>
+              <tr style={{ backgroundColor: '#f9fafb' }}>
+                <th style={{ ...tableCellStyle, width: '5%', fontWeight: 'bold' }}>Sr. No.</th>
+                <th style={{ ...tableCellStyle, width: '16%', fontWeight: 'bold' }}>Process</th>
+                <th style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold' }}>Equipment</th>
+                <th style={{ ...tableCellStyle, width: '22%', fontWeight: 'bold' }}>Parameter</th>
+                <th style={{ ...tableCellStyle, width: '17%', fontWeight: 'bold' }}>Apparatus</th>
+                <th style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>OK</th>
+                <th style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>NOT OK</th>
+                <th style={{ ...tableCellStyle, width: '10%', fontWeight: 'bold' }}>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row, rIdx) => {
+                const isOk = row.status === 'OK' || row.ok === true || row.status === 'ok' || row.status === '✓';
+                const isNotOk = row.status === 'NOT OK' || row.notOk === true || row.status === 'not ok' || row.status === '✗';
+                return (
+                  <tr key={row.id || `dgbb-as-${rIdx}`}>
+                    <td style={{ ...tableCellStyle, width: '5%' }}>{rIdx + 1}</td>
+                    <td style={{ ...tableCellStyle, width: '16%', textAlign: 'left', padding: '3px 6px', fontWeight: 'bold' }}>
+                      <input
+                        type="text"
+                        value={row.process || ''}
+                        onChange={(e) => handleDgbbAssemblyCellChange(rIdx, 'process', e.target.value)}
+                        style={{ ...cellInputStyle, textAlign: 'left', fontSize: '11px', fontWeight: 'bold' }}
+                      />
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '3px 6px' }}>
+                      <input
+                        type="text"
+                        value={row.equipment || ''}
+                        onChange={(e) => handleDgbbAssemblyCellChange(rIdx, 'equipment', e.target.value)}
+                        style={{ ...cellInputStyle, textAlign: 'left', fontSize: '11px' }}
+                      />
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '22%', textAlign: 'left', padding: '3px 6px' }}>
+                      <input
+                        type="text"
+                        value={row.parameter || ''}
+                        onChange={(e) => handleDgbbAssemblyCellChange(rIdx, 'parameter', e.target.value)}
+                        style={{ ...cellInputStyle, textAlign: 'left', fontSize: '11px' }}
+                      />
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '17%', textAlign: 'left', padding: '3px 6px' }}>
+                      <input
+                        type="text"
+                        value={row.apparatus || ''}
+                        onChange={(e) => handleDgbbAssemblyCellChange(rIdx, 'apparatus', e.target.value)}
+                        style={{ ...cellInputStyle, textAlign: 'left', fontSize: '11px' }}
+                      />
+                    </td>
+                    <td
+                      onClick={() => handleDgbbAssemblyCellChange(rIdx, 'status', isOk ? '' : 'OK')}
+                      style={{ ...tableCellStyle, width: '6%', cursor: 'pointer', backgroundColor: isOk ? '#dcfce7' : 'transparent', userSelect: 'none' }}
+                      title="Click to mark OK"
+                    >
+                      {isOk ? <CheckIcon size={16} color="#16a34a" strokeWidth={3} /> : <span style={{ color: '#cbd5e1', fontSize: '10px' }}>[ OK ]</span>}
+                    </td>
+                    <td
+                      onClick={() => handleDgbbAssemblyCellChange(rIdx, 'status', isNotOk ? '' : 'NOT OK')}
+                      style={{ ...tableCellStyle, width: '6%', cursor: 'pointer', backgroundColor: isNotOk ? '#fee2e2' : 'transparent', userSelect: 'none' }}
+                      title="Click to mark NOT OK"
+                    >
+                      {isNotOk ? <CrossIcon size={16} color="#dc2626" strokeWidth={3} /> : <span style={{ color: '#cbd5e1', fontSize: '10px' }}>[ ✗ ]</span>}
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '10%', padding: '0 2px' }}>
+                      <input
+                        type="text"
+                        value={row.remarks || ''}
+                        onChange={(e) => handleDgbbAssemblyCellChange(rIdx, 'remarks', e.target.value)}
+                        placeholder="Remarks"
+                        style={{ ...cellInputStyle, fontSize: '10.5px' }}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : isDgbbPokaYoke ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
+            <thead>
+              <tr style={{ backgroundColor: '#f9fafb' }}>
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>SR. NO.</th>
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '18%', fontWeight: 'bold' }}>PARAMETER</th>
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>STANDARD</th>
+                <th colSpan="2" style={{ ...tableCellStyle, width: '24%', fontWeight: 'bold', padding: '3px 0' }}>TRIAL 1</th>
+                <th colSpan="2" style={{ ...tableCellStyle, width: '24%', fontWeight: 'bold', padding: '3px 0' }}>TRIAL 2</th>
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>REMARKS</th>
+              </tr>
+              <tr style={{ backgroundColor: '#f9fafb' }}>
+                <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>1</th>
+                <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>2</th>
+                <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>1</th>
+                <th style={{ ...tableCellStyle, width: '12%', fontWeight: 'bold' }}>2</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row, rIdx) => {
+                if (row.rowType === 'size') {
+                  return (
+                    <tr key={row.id || `py-${rIdx}`}>
+                      {row.isGroupStart && (
+                        <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>
+                          {Math.floor(rIdx / 2) + 1}
+                        </td>
+                      )}
+                      {row.isGroupStart && (
+                        <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
+                          <div>{row.parameter}</div>
+                          {row.colorLabel && <div style={{ fontSize: '10px', color: '#475569' }}>({row.colorLabel})</div>}
+                        </td>
+                      )}
+                      <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
+                        <div>{row.subType}</div>
+                        <div style={{ fontSize: '10px', color: '#64748b' }}>{row.tol}</div>
+                      </td>
+                      <td style={{ ...tableCellStyle, width: '12%' }}>
+                        <input
+                          type="text"
+                          value={row.trial1_1 || ''}
+                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial1_1', e.target.value)}
+                          placeholder="reading"
+                          style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                      <td style={{ ...tableCellStyle, width: '12%' }}>
+                        <input
+                          type="text"
+                          value={row.trial1_2 || ''}
+                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial1_2', e.target.value)}
+                          placeholder="reading"
+                          style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                      <td style={{ ...tableCellStyle, width: '12%' }}>
+                        <input
+                          type="text"
+                          value={row.trial2_1 || ''}
+                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial2_1', e.target.value)}
+                          placeholder="reading"
+                          style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                      <td style={{ ...tableCellStyle, width: '12%' }}>
+                        <input
+                          type="text"
+                          value={row.trial2_2 || ''}
+                          onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial2_2', e.target.value)}
+                          placeholder="reading"
+                          style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                      {row.isGroupStart && (
+                        <td rowSpan={row.groupSpan || 2} style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px' }}>
+                          <input
+                            type="text"
+                            value={renderRemarksDisplay(row.remarks)}
+                            onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'remarks', e.target.value)}
+                            style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                          />
+                        </td>
+                      )}
+                    </tr>
+                  );
+                }
+                if (row.rowType === 'sorting') {
+                  return (
+                    <tr key={row.id || `py-${rIdx}`}>
+                      <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
+                        <div>{row.subType}</div>
+                        <div style={{ fontSize: '9.5px', color: '#475569' }}>{row.chuteText || row.tol}</div>
+                      </td>
+                      <td colSpan="2" style={{ ...tableCellStyle, width: '24%', cursor: 'pointer' }} onClick={() => handleDgbbPokaYokeCellChange(rIdx, 'trial1Check', row.trial1Check === '✗' ? '✓' : '✗')}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                          {row.trial1Check === '✗' ? <CrossIcon size={16} color="#dc2626" /> : <CheckIcon size={16} color="#16a34a" />}
+                          <span style={{ fontSize: '10px', color: '#64748b' }}>({row.trial1Check || '✓'})</span>
+                        </div>
+                      </td>
+                      <td colSpan="2" style={{ ...tableCellStyle, width: '24%', cursor: 'pointer' }} onClick={() => handleDgbbPokaYokeCellChange(rIdx, 'trial2Check', row.trial2Check === '✗' ? '✓' : '✗')}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                          {row.trial2Check === '✗' ? <CrossIcon size={16} color="#dc2626" /> : <CheckIcon size={16} color="#16a34a" />}
+                          <span style={{ fontSize: '10px', color: '#64748b' }}>({row.trial2Check || '✓'})</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+                return (
+                  <tr key={row.id || `py-${rIdx}`}>
+                    <td style={{ ...tableCellStyle, width: '6%', fontWeight: 'bold' }}>{rIdx - 2}</td>
+                    <td style={{ ...tableCellStyle, width: '18%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold' }}>
+                      {row.parameter}
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold' }}>
+                      <input
+                        type="text"
+                        value={row.tol || ''}
+                        onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'tol', e.target.value)}
+                        style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                      />
+                    </td>
+                    <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>
+                      <input
+                        type="text"
+                        value={row.trial1_1 || row.trial1 || ''}
+                        onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial1_1', e.target.value)}
+                        placeholder="reading"
+                        style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                      />
+                    </td>
+                    <td colSpan="2" style={{ ...tableCellStyle, width: '24%' }}>
+                      <input
+                        type="text"
+                        value={row.trial2_1 || row.trial2 || ''}
+                        onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'trial2_1', e.target.value)}
+                        placeholder="reading"
+                        style={{ ...cellInputStyle, fontSize: '11px', fontWeight: 'bold' }}
+                      />
+                    </td>
+                    <td style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '10px' }}>
+                      <input
+                        type="text"
+                        value={renderRemarksDisplay(row.remarks)}
+                        onChange={(e) => handleDgbbPokaYokeCellChange(rIdx, 'remarks', e.target.value)}
+                        style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', borderTop: 'none', textAlign: 'center', fontSize: '11.5px', border: '1px solid #000', tableLayout: 'fixed' }} border="1">
           <thead>
             <tr style={{ backgroundColor: '#f9fafb' }}>
-              <th rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', fontWeight: 'bold', padding: '4px', boxSizing: 'border-box' }}>PARAMETER</th>
-              <th rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>SYMBOL</th>
-              <th rowSpan="2" style={{ ...tableCellStyle, width: '13%', fontWeight: 'bold', fontSize: '11.5px', boxSizing: 'border-box' }}>TOL (µm)</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), fontWeight: 'bold', padding: '4px', boxSizing: 'border-box' }}>PARAMETER</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>SYMBOL</th>
+              <th rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', fontWeight: 'bold', fontSize: '11.5px', boxSizing: 'border-box' }}>TOL (µm)</th>
               {isAssembly && (
                 <th rowSpan="2" style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', fontSize: '11px', boxSizing: 'border-box' }}>SAMPLE SIZE</th>
               )}
-              <th colSpan="5" style={{ ...tableCellStyle, width: isAssembly ? '40%' : '45%', fontWeight: 'bold', fontSize: '11.5px', padding: '4px 0', boxSizing: 'border-box' }}>{isAssembly ? 'READINGS' : 'SAMPLE NO.'}</th>
+              <th colSpan="5" style={{ ...tableCellStyle, width: isDgbb ? '38%' : (isAssembly ? '40%' : '45%'), fontWeight: 'bold', fontSize: '11.5px', padding: '4px 0', boxSizing: 'border-box' }}>{isDgbb ? 'RING NO.' : (isAssembly ? 'READINGS' : 'SAMPLE NO.')}</th>
+              {isDgbb && (
+                <th rowSpan="2" style={{ ...tableCellStyle, width: '14%', fontWeight: 'bold', fontSize: '11px', boxSizing: 'border-box' }}>REMARKS</th>
+              )}
             </tr>
             <tr style={{ backgroundColor: '#f9fafb' }}>
-              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>1</th>
-              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>2</th>
-              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>3</th>
-              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>4</th>
-              <th style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', fontWeight: 'bold', boxSizing: 'border-box' }}>5</th>
+              <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>1</th>
+              <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>2</th>
+              <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>3</th>
+              <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>4</th>
+              <th style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), fontWeight: 'bold', boxSizing: 'border-box' }}>5</th>
             </tr>
           </thead>
           <tbody>
@@ -3707,12 +4998,12 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                 return (
                   <React.Fragment key={`double-row-${row.id}`}>
                     <tr>
-                      <td rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
-                      <td rowSpan="2" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
+                      <td rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.parameter}</td>
+                      <td rowSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
                       <ValueOrNullCell
                         value={row.tol}
                         onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                        style={tableCellStyle}
+                        style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%' }}
                         inputStyle={cellInputStyle}
                         tdProps={{ rowSpan: 2 }}
                       />
@@ -3731,10 +5022,21 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                           key={`r1-${sIdx}`}
                           value={val}
                           onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal, 1)}
-                          style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
+                          style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%') }}
                           inputStyle={cellInputStyle}
                         />
                       ))}
+                      {isDgbb && (
+                        <td rowSpan="2" style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
+                          <input
+                            type="text"
+                            value={row.remarks || ''}
+                            onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
+                            placeholder="ACCEPTED"
+                            style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                          />
+                        </td>
+                      )}
                     </tr>
                     <tr>
                       {r2.map((val, sIdx) => (
@@ -3742,7 +5044,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                           key={`r2-${sIdx}`}
                           value={val}
                           onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal, 2)}
-                          style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
+                          style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%') }}
                           inputStyle={cellInputStyle}
                         />
                       ))}
@@ -3754,13 +5056,13 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
               if (row.isVibrationRow) {
                 return (
                   <tr key={row.id}>
-                    <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.parameter}
                     </td>
-                    <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.symbol}
                     </td>
-                    <td style={{ ...tableCellStyle, width: '13%', padding: 0, boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', padding: 0, boxSizing: 'border-box' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', minHeight: '34px' }}>
                         <input
                           type="text"
@@ -3793,7 +5095,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     {(row.samples || []).map((val, sIdx) => {
                       const vib = parseVibrationSample(val);
                       return (
-                        <td key={sIdx} style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%', padding: 0, height: '36px', boxSizing: 'border-box' }}>
+                        <td key={sIdx} style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%'), padding: 0, height: '36px', boxSizing: 'border-box' }}>
                           <div style={{ display: 'flex', width: '100%', height: '100%' }}>
                             {/* Sub 1 */}
                             <div style={{ width: '50%', borderRight: '1px solid #000', display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -3837,6 +5139,17 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                         </td>
                       );
                     })}
+                    {isDgbb && (
+                      <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.remarks || ''}
+                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
+                          placeholder="ACCEPTED"
+                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                    )}
                   </tr>
                 );
               }
@@ -3844,16 +5157,16 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
               if (row.isDiagonalTol) {
                 return (
                   <tr key={row.id}>
-                    <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.parameter}
                     </td>
-                    <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.symbol}
                     </td>
                     <DiagonalInputCell
                       value={row.tol}
                       onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                      style={{ ...tableCellStyle, width: '13%' }}
+                      style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%' }}
                     />
                     {isAssembly && (
                       <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
@@ -3870,10 +5183,21 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                         key={sIdx}
                         value={val}
                         onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
+                        style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%') }}
                         inputStyle={cellInputStyle}
                       />
                     ))}
+                    {isDgbb && (
+                      <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.remarks || ''}
+                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
+                          placeholder="ACCEPTED"
+                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                    )}
                   </tr>
                 );
               }
@@ -3881,16 +5205,16 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
               if (row.isDiagonal || row.isDiagonalSplit) {
                 return (
                   <tr key={row.id}>
-                    <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.parameter}
                     </td>
-                    <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.symbol}
                     </td>
                     <DiagonalInputCell
                       value={row.tol}
                       onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                      style={{ ...tableCellStyle, width: '13%' }}
+                      style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%' }}
                     />
                     {isAssembly && (
                       <td style={{ ...tableCellStyle, width: '11%', fontWeight: 'bold', boxSizing: 'border-box' }}>
@@ -3907,9 +5231,20 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                         key={sIdx}
                         value={val}
                         onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
+                        style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%') }}
                       />
                     ))}
+                    {isDgbb && (
+                      <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.remarks || ''}
+                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
+                          placeholder="ACCEPTED"
+                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                    )}
                   </tr>
                 );
               }
@@ -3917,10 +5252,10 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
               if (row.isSpanSymbolTol) {
                 return (
                   <tr key={row.id}>
-                    <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.parameter}
                     </td>
-                    <td colSpan="2" style={{ ...tableCellStyle, width: '27%', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td colSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '24%' : '27%', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.symbol}
                     </td>
                     {isAssembly && (
@@ -3938,10 +5273,21 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                         key={sIdx}
                         value={val}
                         onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
+                        style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%') }}
                         inputStyle={cellInputStyle}
                       />
                     ))}
+                    {isDgbb && (
+                      <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.remarks || ''}
+                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
+                          placeholder="ACCEPTED"
+                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                    )}
                   </tr>
                 );
               }
@@ -3950,11 +5296,11 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                 return (
                   <tr key={row.id}>
                     {row.isFirstInGroup && (
-                      <td rowSpan={row.groupRowSpan || 2} style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      <td rowSpan={row.groupRowSpan || 2} style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                         {row.parameter || '• Visual Inspection'}
                       </td>
                     )}
-                    <td colSpan="2" style={{ ...tableCellStyle, width: '27%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                    <td colSpan="2" style={{ ...tableCellStyle, width: isDgbb ? '24%' : '27%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                       {row.subParameter}
                     </td>
                     {isAssembly && (
@@ -3968,6 +5314,17 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                       </td>
                     )}
                     {row.samples.map((val, sIdx) => renderVisualSampleCell(val, rIdx, sIdx))}
+                    {isDgbb && (
+                      <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.remarks || ''}
+                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
+                          placeholder="ACCEPTED"
+                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                    )}
                   </tr>
                 );
               }
@@ -3976,15 +5333,15 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                 return (
                   <tr key={row.id}>
                     {row.isFirstInGroup && (
-                      <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                      <td rowSpan="3" style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                         • Track VKR (µm/s)
                       </td>
                     )}
-                    <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.subParameter}</td>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.subParameter}</td>
                     <ValueOrNullCell
                       value={row.tol}
                       onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                      style={{ ...tableCellStyle, width: '13%' }}
+                      style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%' }}
                       inputStyle={cellInputStyle}
                     />
                     {isAssembly && (
@@ -4002,10 +5359,21 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                         key={sIdx}
                         value={val}
                         onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
+                        style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%') }}
                         inputStyle={cellInputStyle}
                       />
                     ))}
+                    {isDgbb && (
+                      <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.remarks || ''}
+                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
+                          placeholder="ACCEPTED"
+                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                    )}
                   </tr>
                 );
               }
@@ -4015,10 +5383,10 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                   <tr key={row.id}>
                     {row.isFirstInGroup && (
                       <>
-                        <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
+                        <td rowSpan="3" style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', boxSizing: 'border-box' }}>
                           {row.parameter || 'Track VKR (µm/s)'}
                         </td>
-                        <td rowSpan="3" style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box', whiteSpace: 'pre-line', lineHeight: '1.4' }}>
+                        <td rowSpan="3" style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box', whiteSpace: 'pre-line', lineHeight: '1.4' }}>
                           {row.symbol || "L , M , H\nor\nW Parameters"}
                         </td>
                       </>
@@ -4026,7 +5394,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     <ValueOrNullCell
                       value={row.tol}
                       onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                      style={{ ...tableCellStyle, width: '13%' }}
+                      style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%' }}
                       inputStyle={cellInputStyle}
                     />
                     {isAssembly && (
@@ -4044,10 +5412,21 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                         key={sIdx}
                         value={val}
                         onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                        style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
+                        style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%') }}
                         inputStyle={cellInputStyle}
                       />
                     ))}
+                    {isDgbb && (
+                      <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
+                        <input
+                          type="text"
+                          value={row.remarks || ''}
+                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
+                          placeholder="ACCEPTED"
+                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                        />
+                      </td>
+                    )}
                   </tr>
                 );
               }
@@ -4056,10 +5435,10 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
 
               return (
                 <tr key={row.id}>
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '25%' : '28%', textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', whiteSpace: 'pre-line', boxSizing: 'border-box' }}>{row.parameter}</td>
-                  <td style={{ ...tableCellStyle, width: isAssembly ? '11%' : '14%', fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '24%' : (isAssembly ? '25%' : '28%'), textAlign: 'left', padding: '4px 6px', fontWeight: 'bold', whiteSpace: 'pre-line', boxSizing: 'border-box' }}>{row.parameter}</td>
+                  <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : (isAssembly ? '11%' : '14%'), fontWeight: 'bold', boxSizing: 'border-box' }}>{row.symbol}</td>
                   {row.isStackedTol ? (
-                    <td style={{ ...tableCellStyle, width: '13%', padding: 0, boxSizing: 'border-box' }}>
+                    <td style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%', padding: 0, boxSizing: 'border-box' }}>
                       <textarea
                         value={row.tol || ''}
                         onChange={(e) => handleTolChange(rIdx, e.target.value)}
@@ -4071,7 +5450,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     <ValueOrNullCell
                       value={row.tol}
                       onChange={(newVal) => handleTolChange(rIdx, newVal)}
-                      style={{ ...tableCellStyle, width: '13%' }}
+                      style={{ ...tableCellStyle, width: isDgbb ? '12%' : '13%' }}
                       inputStyle={cellInputStyle}
                     />
                   )}
@@ -4093,10 +5472,21 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                           key={sIdx}
                           value={val}
                           onChange={(newVal) => handleSampleChange(rIdx, sIdx, newVal)}
-                          style={{ ...tableCellStyle, width: isAssembly ? '8%' : '9%' }}
+                          style={{ ...tableCellStyle, width: isDgbb ? '7.6%' : (isAssembly ? '8%' : '9%') }}
                           inputStyle={cellInputStyle}
                         />
                       )
+                  )}
+                  {isDgbb && (
+                    <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
+                      <input
+                        type="text"
+                        value={row.remarks || ''}
+                        onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
+                        placeholder="ACCEPTED"
+                        style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
+                      />
+                    </td>
                   )}
                 </tr>
               );
@@ -4122,7 +5512,33 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
           </div>
         )}
 
-        {isQualityEquipments ? (
+        {isDgbb ? (
+          <div style={{ border: '1px solid #000', borderTop: 'none', padding: '6px 10px', fontSize: '11.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <b>SET UP APPROVAL :</b>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', color: 'green', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="setupApproval"
+                  value="APPROVED"
+                  checked={formData.setupApproval === 'APPROVED' || formData.machineReleased === 'YES'}
+                  onChange={() => setFormData({ ...formData, setupApproval: 'APPROVED', machineReleased: 'YES' })}
+                />
+                APPROVED
+              </label>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', color: 'red', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="setupApproval"
+                  value="NOT APPROVED"
+                  checked={formData.setupApproval === 'NOT APPROVED' || formData.machineReleased === 'NO'}
+                  onChange={() => setFormData({ ...formData, setupApproval: 'NOT APPROVED', machineReleased: 'NO' })}
+                />
+                NOT APPROVED
+              </label>
+            </div>
+          </div>
+        ) : isQualityEquipments ? (
           <div style={{ border: '1px solid #000', borderTop: 'none', padding: '6px 10px', fontSize: '11.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               <b>Setup Approval :-</b>
@@ -4214,10 +5630,10 @@ function FormTRB02Machine1374({
 
   const [formData, setFormData] = useState({
     formatNo: initialMeta ? initialMeta.formatNo : '',
-    revisionNo: '1',
-    revDate: '14/07',
-    prepBy: 'AVS',
-    appdBy: 'SS',
+    revisionNo: initialMeta?.revisionNo || '1',
+    revDate: initialMeta?.revDate || '14/07',
+    prepBy: initialMeta?.prepBy || 'AVS',
+    appdBy: initialMeta?.appdBy || 'SS',
     grinding: initialRing,
     channelNo: filters.channel || '',
     tv: '',
@@ -4257,6 +5673,10 @@ function FormTRB02Machine1374({
       setFormData((prev) => ({
         ...prev,
         formatNo: meta.formatNo,
+        revisionNo: meta.revisionNo || prev.revisionNo || '1',
+        revDate: meta.revDate || prev.revDate || '14/07',
+        prepBy: meta.prepBy || prev.prepBy || 'AVS',
+        appdBy: meta.appdBy || prev.appdBy || 'SS',
         operation: meta.operation,
         grinding: computedRing || prev.grinding
       }));
@@ -4290,10 +5710,11 @@ function FormTRB02Machine1374({
 
   const handlePreviewCurrentForm = () => {
     const finalFormattedDate = formatDateToDDMMYY(formData.date);
+    const computedSection = filters?.section || (isDgbbFormKey(selectedFormKey, formData.formatNo) ? 'DGBB' : 'TRB');
     const tempRec = {
       id: editingRecord?.id || 'PREVIEW-DRAFT',
       date: finalFormattedDate || new Date().toISOString().split('T')[0],
-      section: filters.section || 'TRB',
+      section: computedSection,
       channel: formData.channelNo,
       ringSection: formData.grinding,
       machine: formData.machineNo,
@@ -4305,10 +5726,10 @@ function FormTRB02Machine1374({
       status: formData.machineReleased,
       formData: {
         ...formData,
-        revisionNo: '1',
-        revDate: '14/07',
-        prepBy: 'AVS',
-        appdBy: 'SS',
+        revisionNo: formData.revisionNo || '1',
+        revDate: formData.revDate || '14/07',
+        prepBy: formData.prepBy || 'AVS',
+        appdBy: formData.appdBy || 'SS',
         date: finalFormattedDate,
         attachmentUrl: attachedPdf?.url || null,
         attachmentName: attachedPdf?.name || null,
@@ -4340,13 +5761,14 @@ function FormTRB02Machine1374({
     }
 
     const finalFormattedDate = formatDateToDDMMYY(formData.date);
+    const computedSection = filters?.section || (isDgbbFormKey(selectedFormKey, formData.formatNo) ? 'DGBB' : 'TRB');
 
     const recFormData = {
       ...formData,
-      revisionNo: '1',
-      revDate: '14/07',
-      prepBy: 'AVS',
-      appdBy: 'SS',
+      revisionNo: formData.revisionNo || '1',
+      revDate: formData.revDate || '14/07',
+      prepBy: formData.prepBy || 'AVS',
+      appdBy: formData.appdBy || 'SS',
       date: finalFormattedDate,
       attachmentUrl: serverAttachmentUrl || attachedPdf?.url || null,
       attachmentName: attachedPdf?.name || null,
@@ -4356,7 +5778,7 @@ function FormTRB02Machine1374({
     const newRec = {
       id: newRecId,
       date: finalFormattedDate,
-      section: filters.section || '',
+      section: computedSection,
       channel: formData.channelNo,
       ringSection: formData.grinding,
       machine: formData.machineNo,
@@ -4494,27 +5916,52 @@ const normalizeRingSection = (val) => {
   return val;
 };
 
-const SHEETS_BY_RING = {
-  'INNER RING': [
-    { key: 'SKF/QA/TRB/02', label: 'SKF/QA/TRB/02 - Track Grinding (Inner Ring)' },
-    { key: 'SKF/QA/TRB/03-1', label: 'SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (1)' },
-    { key: 'SKF/QA/TRB/03-2', label: 'SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (2)' },
-    { key: 'SKF/QA/TRB/04', label: 'SKF/QA/TRB/04 - Flange Grinding (Inner Ring)' },
-    { key: 'SKF/QA/TRB/05', label: 'SKF/QA/TRB/05 - Track Honning (Inner Ring)' },
-    { key: 'SKF/QA/TRB/08-1', label: 'SKF/QA/TRB/08 - Marking (Inner Ring)' }
-  ],
-  'Outer Ring': [
-    { key: 'SKF/QA/TRB/06-1', label: 'SKF/QA/TRB/06 - Track Grinding (1) (Outer Ring)' },
-    { key: 'SKF/QA/TRB/06-2', label: 'SKF/QA/TRB/06 - Track Grinding (2) (Outer Ring)' },
-    { key: 'SKF/QA/TRB/07-1', label: 'SKF/QA/TRB/07 - Track Honning (1) (Outer Ring)' },
-    { key: 'SKF/QA/TRB/07-2', label: 'SKF/QA/TRB/07 - Track Honning (2) (Outer Ring)' },
-    { key: 'SKF/QA/TRB/08', label: 'SKF/QA/TRB/08 - Marking (Outer Ring)' }
-  ],
-  'Assembly': [
-    { key: 'SKF/QA/TRB/09', label: 'SKF/QA/TRB/09 - Assembly Off Inspection(1) (Assembly)' },
-    { key: 'SKF/QA/TRB/17', label: 'SKF/QA/TRB/17 - Assembly of Quality Equipment (2) (Assembly)' }
-  ]
+const SHEETS_BY_SECTION = {
+  TRB: {
+    'INNER RING': [
+      { key: 'SKF/QA/TRB/02', label: 'SKF/QA/TRB/02 - Track Grinding (Inner Ring)' },
+      { key: 'SKF/QA/TRB/03-1', label: 'SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (1)' },
+      { key: 'SKF/QA/TRB/03-2', label: 'SKF/QA/TRB/03 - Bore Grinding (Inner Ring) (2)' },
+      { key: 'SKF/QA/TRB/04', label: 'SKF/QA/TRB/04 - Flange Grinding (Inner Ring)' },
+      { key: 'SKF/QA/TRB/05', label: 'SKF/QA/TRB/05 - Track Honning (Inner Ring)' },
+      { key: 'SKF/QA/TRB/08-1', label: 'SKF/QA/TRB/08 - Marking (Inner Ring)' }
+    ],
+    'Outer Ring': [
+      { key: 'SKF/QA/TRB/06-1', label: 'SKF/QA/TRB/06 - Track Grinding (1) (Outer Ring)' },
+      { key: 'SKF/QA/TRB/06-2', label: 'SKF/QA/TRB/06 - Track Grinding (2) (Outer Ring)' },
+      { key: 'SKF/QA/TRB/07-1', label: 'SKF/QA/TRB/07 - Track Honning (1) (Outer Ring)' },
+      { key: 'SKF/QA/TRB/07-2', label: 'SKF/QA/TRB/07 - Track Honning (2) (Outer Ring)' },
+      { key: 'SKF/QA/TRB/08', label: 'SKF/QA/TRB/08 - Marking (Outer Ring)' }
+    ],
+    'Assembly': [
+      { key: 'SKF/QA/TRB/09', label: 'SKF/QA/TRB/09 - Assembly Off Inspection(1) (Assembly)' },
+      { key: 'SKF/QA/TRB/17', label: 'SKF/QA/TRB/17 - Assembly of Quality Equipment (2) (Assembly)' }
+    ]
+  },
+  DGBB: {
+    'INNER RING': [
+      { key: 'SKF/QA/DGBB/04/IR FACE GRINDING', label: '1. SKF/QA/DGBB/04/IR FACE GRINDING' },
+      { key: 'SKF/QA/DGBB/06/IR GROOVE GRINDING', label: '2. SKF/QA/DGBB/06/IR GROOVE GRINDING' },
+      { key: 'SKF/QA/DGBB/03/BORE GRINDING (1)', label: '3. SKF/QA/DGBB/03/BORE GRINDING (1)' },
+      { key: 'SKF/QA/DGBB/03/BORE GRINDING (2)', label: '4. SKF/QA/DGBB/03/BORE GRINDING (2)' },
+      { key: 'SKF/QA/DGBB/03A/AUTO BORE GAUGE (POKA YOKE)', label: '5. SKF/QA/DGBB/03A/AUTO BORE GAUGE (POKA YOKE)' },
+      { key: 'SKF/QA/DGBB/07/IR GROOVE HONING', label: '6. SKF/QA/DGBB/07/IR GROOVE HONING' }
+    ],
+    'Outer Ring': [
+      { key: 'SKF/QA/DGBB/05/OR FACE GRINDING', label: '7. SKF/QA/DGBB/05/OR FACE GRINDING' },
+      { key: 'SKF/QA/DGBB/08/OD GRINDING', label: '8. SKF/QA/DGBB/08/OD GRINDING' },
+      { key: 'SKF/QA/DGBB/09/OR GROOVE GRINDING (1)', label: '9. SKF/QA/DGBB/09/OR GROOVE GRINDING (1)' },
+      { key: 'SKF/QA/DGBB/09/OR GROOVE GRINDING (2)', label: '10. SKF/QA/DGBB/09/OR GROOVE GRINDING (2)' },
+      { key: 'SKF/QA/DGBB/10/OR GROOVE HONING (1)', label: '11. SKF/QA/DGBB/10/OR GROOVE HONING (1)' },
+      { key: 'SKF/QA/DGBB/10/OR GROOVE HONING (2)', label: '12. SKF/QA/DGBB/10/OR GROOVE HONING (2)' }
+    ],
+    'Assembly': [
+      { key: 'SKF/QA/DGBB/10/SET OF A RECORD/ASSEMBLY', label: '13. SKF/QA/DGBB/10/SET OF A RECORD/ASSEMBLY' }
+    ]
+  }
 };
+
+const SHEETS_BY_RING = SHEETS_BY_SECTION.TRB;
 
 // ==========================================
 // 3. MAIN EXPORT COMPONENT
@@ -4538,7 +5985,7 @@ export default function SKFQualityApp() {
     recordId: '',
     operation: '',
     date: '',
-    section: '',
+    section: 'TRB',
     channel: '',
     ringSection: '',
     machine: '',
@@ -4549,7 +5996,7 @@ export default function SKFQualityApp() {
     recordId: '',
     operation: '',
     date: '',
-    section: '',
+    section: 'TRB',
     channel: '',
     ringSection: '',
     machine: '',
@@ -4733,10 +6180,19 @@ export default function SKFQualityApp() {
         if (next.channel && !allowedChannels.includes(next.channel)) {
           next.channel = '';
         }
+        const curSec = value ? value.toUpperCase() : '';
+        const secSheets = curSec ? (SHEETS_BY_SECTION[curSec] || {}) : {};
+        const normalized = normalizeRingSection(next.ringSection);
+        const allowedSheets = normalized ? (secSheets[normalized] || []) : Object.values(secSheets).flat();
+        if (selectedForm && !allowedSheets.some((s) => s.key === selectedForm)) {
+          setSelectedForm('');
+        }
       }
       if (name === 'ringSection') {
         const normalized = normalizeRingSection(value);
-        const allowedSheets = SHEETS_BY_RING[normalized] || [];
+        const curSec = next.section ? next.section.toUpperCase() : '';
+        const secSheets = curSec ? (SHEETS_BY_SECTION[curSec] || {}) : {};
+        const allowedSheets = normalized ? (secSheets[normalized] || []) : Object.values(secSheets).flat();
         if (selectedForm && !allowedSheets.some((s) => s.key === selectedForm)) {
           setSelectedForm('');
         }
@@ -4749,12 +6205,29 @@ export default function SKFQualityApp() {
     const formKey = e.target.value;
     setSelectedForm(formKey);
     if (formKey) {
-      for (const [ring, sheets] of Object.entries(SHEETS_BY_RING)) {
-        if (sheets.some((s) => s.key === formKey)) {
-          setFilterInputs((prev) => ({ ...prev, ringSection: ring }));
-          setAppliedFilters((prev) => ({ ...prev, ringSection: ring }));
-          break;
+      let matchedSection = '';
+      let matchedRing = '';
+      for (const [sec, ringObj] of Object.entries(SHEETS_BY_SECTION)) {
+        for (const [ring, sheets] of Object.entries(ringObj)) {
+          if (sheets.some((s) => s.key === formKey)) {
+            matchedSection = sec;
+            matchedRing = ring;
+            break;
+          }
         }
+        if (matchedSection) break;
+      }
+      if (matchedSection) {
+        setFilterInputs((prev) => ({
+          ...prev,
+          section: matchedSection,
+          ringSection: matchedRing
+        }));
+        setAppliedFilters((prev) => ({
+          ...prev,
+          section: matchedSection,
+          ringSection: matchedRing
+        }));
       }
     }
   };
@@ -5181,7 +6654,7 @@ export default function SKFQualityApp() {
               </div>
               <div>
                 <label style={labelStyle}>Section (DGBB/TRB):</label>
-                <select name="section" value={filterInputs.section} onChange={handleFilterChange} style={selectStyle}>
+                <select id="filter-section" name="section" value={filterInputs.section} onChange={handleFilterChange} style={selectStyle}>
                   <option value="">Choose an option</option>
                   <option value="TRB">TRB</option>
                   <option value="DGBB">DGBB</option>
@@ -5189,7 +6662,7 @@ export default function SKFQualityApp() {
               </div>
               <div>
                 <label style={labelStyle}>Channel:</label>
-                <select name="channel" value={filterInputs.channel} onChange={handleFilterChange} style={selectStyle}>
+                <select id="filter-channel" name="channel" value={filterInputs.channel} onChange={handleFilterChange} style={selectStyle}>
                   <option value="">Choose an option</option>
                   {(() => {
                     const channelList = SECTION_CHANNELS[filterInputs.section] || [
@@ -5204,7 +6677,7 @@ export default function SKFQualityApp() {
               </div>
               <div>
                 <label style={labelStyle}>Ring Section:</label>
-                <select name="ringSection" value={filterInputs.ringSection} onChange={handleFilterChange} style={selectStyle}>
+                <select id="filter-ring-section" name="ringSection" value={filterInputs.ringSection} onChange={handleFilterChange} style={selectStyle}>
                   <option value="">Choose an option</option>
                   <option value="INNER RING">Inner Ring</option>
                   <option value="Outer Ring">Outer Ring</option>
@@ -5320,16 +6793,22 @@ export default function SKFQualityApp() {
                   Select Inspection Sheet
                 </span>
                 <select
+                  id="select-inspection-sheet"
                   value={selectedForm}
                   onChange={handleSheetSelect}
                   style={{ padding: '7px 12px', borderRadius: '6px', border: '1.5px solid #005a9c', fontSize: '14px', minWidth: '340px', fontWeight: '500', outline: 'none', backgroundColor: '#fff', color: '#000' }}
                 >
                   <option value="">Choose an option</option>
                   {(() => {
+                    const currentSection = (filterInputs.section || '').toUpperCase();
+                    if (!currentSection) {
+                      return <option value="" disabled>-- Please select Section (TRB / DGBB) above --</option>;
+                    }
+                    const sectionSheetsObj = SHEETS_BY_SECTION[currentSection] || {};
                     const normalized = normalizeRingSection(filterInputs.ringSection);
-                    const sheetsList = normalized && SHEETS_BY_RING[normalized]
-                      ? SHEETS_BY_RING[normalized]
-                      : Object.values(SHEETS_BY_RING).flat();
+                    const sheetsList = normalized && sectionSheetsObj[normalized]
+                      ? sectionSheetsObj[normalized]
+                      : Object.values(sectionSheetsObj).flat();
                     return sheetsList.map((item) => (
                       <option key={item.key} value={item.key}>{item.label}</option>
                     ));
@@ -5338,8 +6817,10 @@ export default function SKFQualityApp() {
                 {filterInputs.ringSection && (
                   <span style={{ fontSize: '12px', color: '#0369a1', backgroundColor: '#e0f2fe', padding: '4px 10px', borderRadius: '4px', fontWeight: 'bold' }}>
                     Showing {filterInputs.ringSection} sheets only ({(() => {
+                      const currentSection = (filterInputs.section || '').toUpperCase();
+                      const sectionSheetsObj = SHEETS_BY_SECTION[currentSection] || {};
                       const norm = normalizeRingSection(filterInputs.ringSection);
-                      return (SHEETS_BY_RING[norm] || []).length;
+                      return (sectionSheetsObj[norm] || []).length;
                     })()} available)
                   </span>
                 )}
