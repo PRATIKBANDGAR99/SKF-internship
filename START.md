@@ -17,11 +17,21 @@ This document contains all the commands to run the **SKF Quality Assurance Porta
 
 ## 🔐 Default Login Credentials
 
-| Role | Email | Password | Permissions |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin@skf.com` | `admin123` | Full Access: Data Entry, View Reports, CRUD Edit/Delete records, Users Dashboard (Add/Edit/Password/Disable/Delete users) |
-| **User (Operator)** | `operator@skf.com` | `user123` | Operational Access: Data Entry, View Reports, Print & Download PDF |
-| **User (Engineer)** | `mandar.thorat@skf.com` | `user123` | Plant-floor user account |
+### Quick Access Accounts
+
+| Role | Name | Email | Password | Channel | Permissions & Access |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 🛡️ **Admin** | Admin User | `admin@skf.com` | `admin123` | **All** | **Full System Access**: Data Entry, View/Filter Records, Edit/Delete Inspection Sheets, PDF Downloads, and **Users Dashboard** (Create/Edit/Reset Password/Disable/Delete users) |
+| 👷 **Operator** | Operator User | `operator@skf.com` | `user123` | **T1** | **Operational Access**: Data Entry Form, View Records, Search & Filter, Print & Download Merged PDFs |
+| 🔬 **Engineer (T1)** | Mandar Thorat | `mandar.thorat@skf.com` | `skf123` | **T1** | Quality inspection data entry & report generation for Channel T1 |
+| 🔬 **Engineer (T2)** | Abdul Shaikji | `abdul.shaikji@skf.com` | `skf123` | **T2** | Quality inspection data entry & report generation for Channel T2 |
+| 🔬 **Engineer (T3)** | Ajay Shinde | `ajay.a.shinde@skf.com` | `skf123` | **T3** | Quality inspection data entry & report generation for Channel T3 |
+
+> [!TIP]
+> **Offline / Local Fallback Mode:**  
+> If the backend server is temporarily stopped or unreachable, the frontend supports automatic offline fallback login:
+> - Any email containing `admin` or password `admin123` logs in as **Admin User**.
+> - Any other email/password combination logs in as **Quality Operator**.
 
 ---
 
