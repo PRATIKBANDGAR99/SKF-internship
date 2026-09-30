@@ -5028,13 +5028,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                       ))}
                       {isDgbb && (
                         <td rowSpan="2" style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
-                          <input
-                            type="text"
-                            value={row.remarks || ''}
-                            onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
-                            placeholder="ACCEPTED"
-                            style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                          />
+                          <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleRemarksChange(rIdx, val)} />
                         </td>
                       )}
                     </tr>
@@ -5141,13 +5135,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     })}
                     {isDgbb && (
                       <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
-                        <input
-                          type="text"
-                          value={row.remarks || ''}
-                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
-                          placeholder="ACCEPTED"
-                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                        />
+                        <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleRemarksChange(rIdx, val)} />
                       </td>
                     )}
                   </tr>
@@ -5189,13 +5177,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     ))}
                     {isDgbb && (
                       <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
-                        <input
-                          type="text"
-                          value={row.remarks || ''}
-                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
-                          placeholder="ACCEPTED"
-                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                        />
+                        <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleRemarksChange(rIdx, val)} />
                       </td>
                     )}
                   </tr>
@@ -5236,13 +5218,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     ))}
                     {isDgbb && (
                       <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
-                        <input
-                          type="text"
-                          value={row.remarks || ''}
-                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
-                          placeholder="ACCEPTED"
-                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                        />
+                        <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleRemarksChange(rIdx, val)} />
                       </td>
                     )}
                   </tr>
@@ -5279,13 +5255,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     ))}
                     {isDgbb && (
                       <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
-                        <input
-                          type="text"
-                          value={row.remarks || ''}
-                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
-                          placeholder="ACCEPTED"
-                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                        />
+                        <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleRemarksChange(rIdx, val)} />
                       </td>
                     )}
                   </tr>
@@ -5316,13 +5286,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     {row.samples.map((val, sIdx) => renderVisualSampleCell(val, rIdx, sIdx))}
                     {isDgbb && (
                       <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
-                        <input
-                          type="text"
-                          value={row.remarks || ''}
-                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
-                          placeholder="ACCEPTED"
-                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                        />
+                        <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleRemarksChange(rIdx, val)} />
                       </td>
                     )}
                   </tr>
@@ -5365,13 +5329,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     ))}
                     {isDgbb && (
                       <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
-                        <input
-                          type="text"
-                          value={row.remarks || ''}
-                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
-                          placeholder="ACCEPTED"
-                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                        />
+                        <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleRemarksChange(rIdx, val)} />
                       </td>
                     )}
                   </tr>
@@ -5418,13 +5376,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                     ))}
                     {isDgbb && (
                       <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
-                        <input
-                          type="text"
-                          value={row.remarks || ''}
-                          onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
-                          placeholder="ACCEPTED"
-                          style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                        />
+                        <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleRemarksChange(rIdx, val)} />
                       </td>
                     )}
                   </tr>
@@ -5479,13 +5431,7 @@ function InspectionTemplate({ printRef, formData, setFormData, tableData, setTab
                   )}
                   {isDgbb && (
                     <td style={{ ...tableCellStyle, width: '14%', padding: '0 2px', boxSizing: 'border-box' }}>
-                      <input
-                        type="text"
-                        value={row.remarks || ''}
-                        onChange={(e) => handleRemarksChange(rIdx, e.target.value)}
-                        placeholder="ACCEPTED"
-                        style={{ ...cellInputStyle, fontSize: '10.5px', fontWeight: 'bold' }}
-                      />
+                      <RemarksSelectCell value={row.remarks || ''} onChange={(val) => handleRemarksChange(rIdx, val)} />
                     </td>
                   )}
                 </tr>
