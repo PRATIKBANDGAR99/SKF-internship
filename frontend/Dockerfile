@@ -1,7 +1,7 @@
 # =========================================================
 # Stage 1: Build React + Vite SPA
 # =========================================================
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -35,7 +35,7 @@ EXPOSE 3040
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://localhost:3040/ || exit 1
+    CMD wget --quiet --tries=1 --spider http://127.0.0.1:3040/ || exit 1
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]

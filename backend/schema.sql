@@ -50,3 +50,13 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+
+-- 4. Seed default plant-floor users (hashed using salt 'skf_secure_salt_2026')
+INSERT INTO users (email, full_name, password_hash, role, channel, status)
+VALUES
+    ('admin@skf.com', 'Admin User', '55a90ece5cd91f71603511f7ee49b2dfc549dc75650c7ebd978e977ad0e5c9c6', 'Admin', 'All', 'Active'),
+    ('operator@skf.com', 'Operator User', '7ed666163dc78fdc275835b94578ecdc7b2624dc431704dc386ab32d52efe926', 'User', 'T1', 'Active'),
+    ('mandar.thorat@skf.com', 'Mandar Thorat', 'f20cf6a9609056080c845fcae08e8135fb4b8e1f8d55c0c9f0eaa99d6b1a82c0', 'User', 'T1', 'Active'),
+    ('abdul.shaikji@skf.com', 'Abdul Shaikji', 'f20cf6a9609056080c845fcae08e8135fb4b8e1f8d55c0c9f0eaa99d6b1a82c0', 'User', 'T2', 'Active'),
+    ('ajay.a.shinde@skf.com', 'Ajay Shinde', 'f20cf6a9609056080c845fcae08e8135fb4b8e1f8d55c0c9f0eaa99d6b1a82c0', 'User', 'T3', 'Active')
+ON CONFLICT (email) DO NOTHING;
