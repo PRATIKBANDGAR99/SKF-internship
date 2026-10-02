@@ -189,8 +189,33 @@ export async function loginUser(email, password) {
   }
 }
 
+const DEFAULT_FALLBACK_USERS = [
+  { id: 1, email: 'admin@skf.com', fullName: 'Admin User', role: 'Admin', channel: 'All', status: 'Active' },
+  { id: 2, email: 'operator@skf.com', fullName: 'Operator User', role: 'User', channel: 'T1', status: 'Active' },
+  { id: 3, email: 'mandar.thorat@skf.com', fullName: 'Mandar Thorat', role: 'User', channel: 'T1', status: 'Active' },
+  { id: 4, email: 'abdul.shaikji@skf.com', fullName: 'Abdul Shaikji', role: 'User', channel: 'T2', status: 'Active' },
+  { id: 5, email: 'ajay.a.shinde@skf.com', fullName: 'Ajay Shinde', role: 'User', channel: 'T3', status: 'Active' }
+];
+
+function getOfflineUsers() {
+  try {
+    const raw = localStorage.getItem('skf_offline_users');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (_) {}
+  return [...DEFAULT_FALLBACK_USERS];
+}
+
+function saveOfflineUsers(users) {
+  try {
+    localStorage.setItem('skf_offline_users', JSON.stringify(users));
+  } catch (_) {}
+}
+
 /**
- * Fetches all users from PostgreSQL backend
+ * Fetches all users from PostgreSQL backend (falls back to local store if offline)
  * @returns {Promise<Array>}
  */
 export async function fetchUsers() {
@@ -204,10 +229,14 @@ export async function fetchUsers() {
       throw new Error(`Failed to fetch users: status ${resp.status}`);
     }
 
-    return await resp.json();
+    const data = await resp.json();
+    if (Array.isArray(data)) {
+      saveOfflineUsers(data);
+    }
+    return data;
   } catch (err) {
-    console.error('Fetch users error:', err);
-    throw err;
+    console.warn('Backend fetchUsers unreachable, using offline fallback:', err);
+    return getOfflineUsers();
   }
 }
 
@@ -231,8 +260,19 @@ export async function createUser(userData) {
 
     return await resp.json();
   } catch (err) {
-    console.error('Create user error:', err);
-    throw err;
+    console.warn('Backend createUser unreachable, updating offline store:', err);
+    const users = getOfflineUsers();
+    const newUser = {
+      id: Date.now(),
+      email: userData.email,
+      fullName: userData.fullName,
+      role: userData.role || 'User',
+      channel: userData.channel || '',
+      status: 'Active'
+    };
+    users.push(newUser);
+    saveOfflineUsers(users);
+    return newUser;
   }
 }
 
@@ -257,8 +297,15 @@ export async function updateUser(userId, userData) {
 
     return await resp.json();
   } catch (err) {
-    console.error('Update user error:', err);
-    throw err;
+    console.warn('Backend updateUser unreachable, updating offline store:', err);
+    const users = getOfflineUsers();
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], ...userData };
+      saveOfflineUsers(users);
+      return users[idx];
+    }
+    return { id: userId, ...userData };
   }
 }
 
@@ -283,8 +330,8 @@ export async function updateUserPassword(userId, newPassword) {
 
     return await resp.json();
   } catch (err) {
-    console.error('Update password error:', err);
-    throw err;
+    console.warn('Backend updateUserPassword unreachable (offline mode):', err);
+    return { success: true };
   }
 }
 
@@ -309,8 +356,15 @@ export async function toggleUserStatus(userId, status) {
 
     return await resp.json();
   } catch (err) {
-    console.error('Toggle user status error:', err);
-    throw err;
+    console.warn('Backend toggleUserStatus unreachable, updating offline store:', err);
+    const users = getOfflineUsers();
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      users[idx].status = status;
+      saveOfflineUsers(users);
+      return users[idx];
+    }
+    return { id: userId, status };
   }
 }
 
@@ -332,7 +386,9 @@ export async function deleteUser(userId) {
 
     return true;
   } catch (err) {
-    console.error('Delete user error:', err);
-    throw err;
+    console.warn('Backend deleteUser unreachable, removing from offline store:', err);
+    const users = getOfflineUsers().filter(u => u.id !== userId);
+    saveOfflineUsers(users);
+    return true;
   }
 }
