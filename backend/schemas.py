@@ -6,6 +6,8 @@ class InspectionRecordSchema(BaseModel):
 
     id: str
     date: Optional[str] = None
+    submitted_by: Optional[str] = None
+    submittedBy: Optional[str] = None
     section: Optional[str] = "TRB"
     channel: Optional[str] = None
     ring_section: Optional[str] = None

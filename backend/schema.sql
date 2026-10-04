@@ -10,6 +10,7 @@
 CREATE TABLE IF NOT EXISTS inspection_records (
     id VARCHAR(100) PRIMARY KEY,
     date VARCHAR(50),
+    submitted_by VARCHAR(150),
     section VARCHAR(50) DEFAULT 'TRB',
     channel VARCHAR(50),
     ring_section VARCHAR(100),

@@ -57,6 +57,7 @@ export async function saveInspectionRecord(record) {
     const payload = {
       id: record.id,
       date: record.date || record.formData?.date || '',
+      submitted_by: record.submittedBy || record.formData?.submittedBy || record.submitted_by || '',
       section: record.section || 'TRB',
       channel: record.channel || record.formData?.channelNo || '',
       ring_section: record.ringSection || record.formData?.grinding || '',

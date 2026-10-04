@@ -1109,6 +1109,7 @@ const initialDatabase = [
   {
     id: 'REC-868',
     date: '2025-09-10',
+    submittedBy: 'operator@skf.com',
     section: 'TRB',
     channel: 'CH2',
     ringSection: 'INNER RING',
@@ -1121,6 +1122,7 @@ const initialDatabase = [
     status: 'YES',
     formData: {
       formatNo: 'SKF/QA/TRB/02',
+      submittedBy: 'operator@skf.com',
       revisionNo: '',
       revDate: '',
       prepBy: '',
@@ -1147,6 +1149,7 @@ const initialDatabase = [
   {
     id: 'REC-869',
     date: '2025-09-11',
+    submittedBy: 'mandar.thorat@skf.com',
     section: 'TRB',
     channel: 'CH4',
     ringSection: 'OUTER RING',
@@ -1159,6 +1162,7 @@ const initialDatabase = [
     status: 'YES',
     formData: {
       formatNo: 'SKF/QA/TRB/07',
+      submittedBy: 'mandar.thorat@skf.com',
       revisionNo: '01',
       revDate: '25/08',
       prepBy: 'RS',
@@ -1215,6 +1219,7 @@ const initialDatabase = [
   {
     id: 'REC-870',
     date: '2025-09-12',
+    submittedBy: 'abdul.shaikji@skf.com',
     section: 'TRB',
     channel: 'CH1',
     ringSection: 'INNER RING',
@@ -1227,6 +1232,7 @@ const initialDatabase = [
     status: 'YES',
     formData: {
       formatNo: 'SKF/QA/TRB/03',
+      submittedBy: 'abdul.shaikji@skf.com',
       revisionNo: '02',
       revDate: '15/09',
       prepBy: 'AG',
@@ -1278,6 +1284,7 @@ const initialDatabase = [
   {
     id: 'REC-871',
     date: '2025-09-13',
+    submittedBy: 'ajay.a.shinde@skf.com',
     section: 'TRB',
     channel: 'CH3',
     ringSection: 'INNER RING',
@@ -1290,6 +1297,7 @@ const initialDatabase = [
     status: 'YES',
     formData: {
       formatNo: 'SKF/QA/TRB/04',
+      submittedBy: 'ajay.a.shinde@skf.com',
       revisionNo: '01',
       revDate: '20/09',
       prepBy: 'RS',
@@ -1340,6 +1348,7 @@ const initialDatabase = [
   {
     id: 'REC-872',
     date: '2025-09-14',
+    submittedBy: 'operator@skf.com',
     section: 'TRB',
     channel: 'CH2',
     ringSection: 'INNER RING',
@@ -1408,6 +1417,7 @@ const initialDatabase = [
   {
     id: 'REC-875',
     date: '01/09/26',
+    submittedBy: 'mandar.thorat@skf.com',
     section: 'TRB',
     channel: 'T6',
     ringSection: 'ASSEMBLY',
@@ -1420,6 +1430,7 @@ const initialDatabase = [
     status: 'YES',
     formData: {
       formatNo: 'SKF/QA/TRB/09',
+      submittedBy: 'mandar.thorat@skf.com',
       revisionNo: '1',
       revDate: '14/07',
       prepBy: 'AVS',
@@ -1528,6 +1539,7 @@ const initialDatabase = [
   {
     id: 'REC-876',
     date: '2026-09-03',
+    submittedBy: 'admin@skf.com',
     section: 'TRB',
     channel: 'T-6',
     ringSection: 'Assembly',
@@ -1540,6 +1552,7 @@ const initialDatabase = [
     status: 'YES',
     formData: {
       formatNo: 'SKF/QA/TRB/17',
+      submittedBy: 'admin@skf.com',
       revisionNo: '1',
       revDate: '14/07',
       prepBy: 'AVS',
@@ -1579,6 +1592,7 @@ const initialDatabase = [
   {
     id: 'REC-877',
     date: '03/09/26',
+    submittedBy: 'operator@skf.com',
     section: 'TRB',
     channel: 'T-6',
     ringSection: 'Outer Ring',
@@ -1591,6 +1605,7 @@ const initialDatabase = [
     status: 'YES',
     formData: {
       formatNo: 'SKF/QA/TRB/08',
+      submittedBy: 'operator@skf.com',
       revisionNo: '1',
       revDate: '14/07',
       prepBy: 'AVS',
@@ -5495,7 +5510,8 @@ function FormTRB02Machine1374({
   onPreviewForm,
   onUploadPdf,
   editingRecord,
-  onCancelEdit
+  onCancelEdit,
+  currentUser
 }) {
   const printRef = useRef();
 
@@ -5585,9 +5601,17 @@ function FormTRB02Machine1374({
   const handlePreviewCurrentForm = () => {
     const finalFormattedDate = formatDateToDDMMYY(formData.date);
     const computedSection = filters?.section || (isDgbbFormKey(selectedFormKey, formData.formatNo) ? 'DGBB' : 'TRB');
+    const submitterEmail = editingRecord?.submittedBy || editingRecord?.formData?.submittedBy || currentUser?.email || (() => {
+      try {
+        const stored = localStorage.getItem('skf_current_user');
+        return stored ? JSON.parse(stored)?.email : '';
+      } catch (_) { return ''; }
+    })();
+
     const tempRec = {
       id: editingRecord?.id || 'PREVIEW-DRAFT',
       date: finalFormattedDate || new Date().toISOString().split('T')[0],
+      submittedBy: submitterEmail,
       section: computedSection,
       channel: formData.channelNo,
       ringSection: formData.grinding,
@@ -5600,6 +5624,7 @@ function FormTRB02Machine1374({
       status: formData.machineReleased,
       formData: {
         ...formData,
+        submittedBy: submitterEmail,
         revisionNo: formData.revisionNo || '1',
         revDate: formData.revDate || '14/07',
         prepBy: formData.prepBy || 'AVS',
@@ -5636,9 +5661,16 @@ function FormTRB02Machine1374({
 
     const finalFormattedDate = formatDateToDDMMYY(formData.date);
     const computedSection = filters?.section || (isDgbbFormKey(selectedFormKey, formData.formatNo) ? 'DGBB' : 'TRB');
+    const submitterEmail = editingRecord?.submittedBy || editingRecord?.formData?.submittedBy || currentUser?.email || (() => {
+      try {
+        const stored = localStorage.getItem('skf_current_user');
+        return stored ? JSON.parse(stored)?.email : '';
+      } catch (_) { return ''; }
+    })();
 
     const recFormData = {
       ...formData,
+      submittedBy: submitterEmail,
       revisionNo: formData.revisionNo || '1',
       revDate: formData.revDate || '14/07',
       prepBy: formData.prepBy || 'AVS',
@@ -5652,6 +5684,7 @@ function FormTRB02Machine1374({
     const newRec = {
       id: newRecId,
       date: finalFormattedDate,
+      submittedBy: submitterEmail,
       section: computedSection,
       channel: formData.channelNo,
       ringSection: formData.grinding,
@@ -5965,6 +5998,7 @@ export default function SKFQualityApp() {
         const mapped = dbRecords.map((r) => ({
           id: r.id,
           date: r.date,
+          submittedBy: r.submittedBy || r.submitted_by || r.formData?.submittedBy || r.form_data?.submittedBy || '',
           section: r.section || 'TRB',
           channel: r.channel || '',
           ringSection: r.ringSection || r.ring_section || '',
@@ -5989,6 +6023,7 @@ export default function SKFQualityApp() {
             const existing = prevMap.get(m.id);
             return {
               ...m,
+              submittedBy: m.submittedBy || existing?.submittedBy || existing?.formData?.submittedBy || '',
               attachmentFile: existing?.attachmentFile || m.attachmentFile || null,
               attachmentUrl: existing?.attachmentUrl || m.attachmentUrl || null,
               attachmentName: existing?.attachmentName || m.attachmentName || null,
@@ -6715,6 +6750,7 @@ export default function SKFQualityApp() {
                 onUploadPdf={handleFileUpload}
                 editingRecord={editingRecord}
                 onCancelEdit={() => setEditingRecord(null)}
+                currentUser={currentUser}
               />
             </div>
           ) : (
@@ -6778,6 +6814,7 @@ export default function SKFQualityApp() {
               <tr style={{ backgroundColor: '#002b49', color: '#fff' }}>
                 <th style={{ padding: '8px' }}>Record ID</th>
                 <th style={{ padding: '8px' }}>Date</th>
+                <th style={{ padding: '8px' }}>Submitted By</th>
                 <th style={{ padding: '8px' }}>Format No</th>
                 <th style={{ padding: '8px' }}>Section</th>
                 <th style={{ padding: '8px' }}>Channel</th>
@@ -6811,7 +6848,31 @@ export default function SKFQualityApp() {
                           </div>
                         )}
                       </td>
-                      <td style={{ padding: '8px' }}>{formatDateToDDMMYY(rec.date)}</td>
+                      <td style={{ padding: '8px', whiteSpace: 'nowrap' }}>{formatDateToDDMMYY(rec.date)}</td>
+                      <td style={{ padding: '8px' }}>
+                        {rec.submittedBy ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              backgroundColor: '#f1f5f9',
+                              color: '#0f172a',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              border: '1px solid #e2e8f0',
+                              whiteSpace: 'nowrap'
+                            }}
+                            title={`Submitted by: ${rec.submittedBy}`}
+                          >
+                            ✉️ {rec.submittedBy}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94a3b8' }}>-</span>
+                        )}
+                      </td>
                       <td style={{ padding: '8px' }}>{rec.formatNo}</td>
                       <td style={{ padding: '8px' }}>{rec.section}</td>
                       <td style={{ padding: '8px' }}>{rec.channel}</td>
@@ -6940,7 +7001,7 @@ export default function SKFQualityApp() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={currentUser?.role === 'Admin' ? 15 : 14} style={{ padding: '36px 20px', textAlign: 'center', backgroundColor: '#f8fafc' }}>
+                  <td colSpan={currentUser?.role === 'Admin' ? 16 : 15} style={{ padding: '36px 20px', textAlign: 'center', backgroundColor: '#f8fafc' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                       <DocumentIcon size={34} color="#64748b" />
                       <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#1e293b' }}>
@@ -7056,6 +7117,11 @@ export default function SKFQualityApp() {
                       <span style={{ fontSize: '12px', opacity: 0.85, backgroundColor: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '4px' }}>
                         {previewRecord.formatNo} {previewRecord.operation ? `• ${previewRecord.operation}` : ''}
                       </span>
+                      {previewRecord.submittedBy && (
+                        <span style={{ fontSize: '11.5px', backgroundColor: 'rgba(255,255,255,0.2)', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontWeight: '500' }}>
+                          ✉️ {previewRecord.submittedBy}
+                        </span>
+                      )}
                       {previewAttachment && (
                         <span style={{ fontSize: '11.5px', backgroundColor: '#0284c7', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
                           📎 PDF Attached

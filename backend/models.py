@@ -42,6 +42,7 @@ class InspectionRecord(Base):
 
     id = Column(String(100), primary_key=True, index=True)
     date = Column(String(50), nullable=True, index=True)
+    submitted_by = Column(String(150), nullable=True, index=True)
     section = Column(String(50), default="TRB", nullable=True)
     channel = Column(String(50), nullable=True)
     ring_section = Column(String(100), nullable=True)
@@ -64,6 +65,7 @@ class InspectionRecord(Base):
         return {
             "id": self.id,
             "date": self.date,
+            "submittedBy": self.submitted_by or (self.form_data.get("submittedBy") if isinstance(self.form_data, dict) else None) or "",
             "section": self.section,
             "channel": self.channel,
             "ringSection": self.ring_section,

@@ -333,6 +333,7 @@ def save_record(payload: InspectionRecordSchema, db: Session = Depends(get_db)):
         record_data = {
             "id": payload.id,
             "date": payload.date,
+            "submitted_by": payload.submitted_by or payload.submittedBy or (payload.form_data.get("submittedBy") if isinstance(payload.form_data, dict) else None) or (payload.formData.get("submittedBy") if isinstance(payload.formData, dict) else None) or None,
             "section": payload.section,
             "channel": payload.channel,
             "ring_section": payload.ring_section or payload.ringSection,

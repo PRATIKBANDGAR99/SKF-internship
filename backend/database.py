@@ -38,6 +38,12 @@ def init_db():
     """Attempts to auto-create database tables on server startup."""
     try:
         Base.metadata.create_all(bind=engine)
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("ALTER TABLE inspection_records ADD COLUMN IF NOT EXISTS submitted_by VARCHAR(150);"))
+                conn.commit()
+        except Exception as col_err:
+            logger.debug(f"Column check notice: {col_err}")
         logger.info("Database tables initialized successfully via SQLAlchemy.")
         return True
     except Exception as e:
